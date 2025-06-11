@@ -1,10 +1,12 @@
 import React from 'react'
+import { BrowserRouter as Router } from "react-router-dom";
+import AllRoutes from './routes/AllRoutes';
 
 const App = () => {
   return (
-    <div>
-      Welcome to Verbiq CRM ...
-    </div>
+  <Router>
+      <AllRoutes />
+    </Router>
   )
 }
 
