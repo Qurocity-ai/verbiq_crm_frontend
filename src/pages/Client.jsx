@@ -22,7 +22,7 @@ function Client() {
       {/* Form Section */}
       {showForm && (
         <div className="border border-gray-300 rounded-lg p-6 mt-4 w-full max-w-6xl shadow-sm">
-          <form className="grid grid-cols-3 gap-6">
+          <form className="grid grid-cols-3 gap-x-8 gap-y-2">
             {/* Row 1 */}
             <div>
               <label className="block mb-1">Client Name</label>
@@ -34,6 +34,7 @@ function Client() {
             </div>
 
             {/* Contact Person Details */}
+            <div className="col-span-3 mt-4 font-medium">Contact Person details</div>
             <div>
               <label className="block mb-1">Name</label>
               <input type="text" className="w-full border border-gray-300  rounded px-2 py-1" />
@@ -74,6 +75,7 @@ function Client() {
             </div>
 
             {/* Salary */}
+            <div className="col-span-3 mt-4 font-medium">Salary range</div>
             <div>
               <label className="block mb-1">Minimum CTC</label>
               <input type="text" className="w-full border border-gray-300  rounded px-2 py-1" />
@@ -82,7 +84,8 @@ function Client() {
               <label className="block mb-1">Maximum CTC</label>
               <input type="text" className="w-full border border-gray-300  rounded px-2 py-1" />
             </div>
-
+{/* Section Title */}
+            <div className="col-span-3 mt-4 font-medium"></div>
             {/* Other */}
             <div>
               <label className="block mb-1">Notice period allowed</label>
