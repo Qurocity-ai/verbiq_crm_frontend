@@ -1,11 +1,13 @@
 
 import React from "react";
 import { Menu } from "lucide-react";
-
+import { useNavigate } from "react-router-dom";
 const Navbar = ({ toggleSidebar }) => {
+   const navigate = useNavigate();
   const handleLogout = () => {
     // Add your logout logic
-    alert("Logged out!");
+    localStorage.removeItem("crm_token"); // Clear token
+    navigate("/login"); // Redirect to login page
   };
 
   return (
