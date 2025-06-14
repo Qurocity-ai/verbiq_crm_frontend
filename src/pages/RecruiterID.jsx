@@ -6,12 +6,16 @@ import axios from 'axios';
 function RecruiterID() {
   const [form, setForm] = useState({ fullname: '', email: '', password: '', number: '' });
   const [recruiters, setRecruiters] = useState([]);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingRecruiterId, setEditingRecruiterId] = useState(null);
 
   const token = localStorage.getItem('crm_token');
 
   useEffect(() => {
     fetchRecruiters();
   }, []);
+
+
 
   const fetchRecruiters = async () => {
     try {
@@ -48,6 +52,34 @@ function RecruiterID() {
       console.error("Error creating recruiter:", error.response?.data || error.message);
     }
   };
+  // edit functinality
+ const handleEditClick = (recruiter) => {
+    setForm({
+      fullname: recruiter.fullname ?? '',
+      email: recruiter.email ?? '',
+      password: recruiter.password ?? '',
+      number: recruiter.number ?? '',
+    });
+    setEditingRecruiterId(recruiter._id);
+    setShowEditModal(true);
+  };
+
+  const handleUpdate = async () => {
+    try {
+      await axios.put(
+        `https://verbiq-crm.onrender.com/api/updaterecruiter/${editingRecruiterId}`,
+        form,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setForm({ fullname: '', email: '', password: '', number: '' });
+      setEditingRecruiterId(null);
+      setShowEditModal(false);
+      fetchRecruiters();
+    } catch (error) {
+      alert("Error updating recruiter");
+    }
+  };
+
   const handleDelete = async (id) => {
   if (!window.confirm("Are you sure you want to delete this recruiter?")) return;
 
@@ -101,15 +133,16 @@ function RecruiterID() {
             onChange={handleChange}
             className="border border-gray-300 rounded px-3 py-2 w-full md:w-[180px]"
           />
-          <button
+           <button
             onClick={handleCreate}
             className="bg-green-400 hover:bg-green-500 text-white px-6 py-2 rounded font-semibold w-full md:w-auto"
           >
             Create
           </button>
-        </div>
+          </div>
       </div>
-
+           {/* Table + Edit Form Side by Side*/}
+      <div className="flex flex-col md:flex-row gap-6 w-full max-w-6xl mx-auto">
       {/* Recruiter Table */}
       <div className="bg-white p-4 md:p-6 rounded-xl border border-[#0000001A]  shadow-sm w-full max-w-6xl mx-auto space-y-4 overflow-x-auto">
         <div className="hidden md:grid grid-cols-12 gap-2 text-gray-500 text-sm font-semibold tracking-widest px-2">
@@ -135,7 +168,7 @@ function RecruiterID() {
               <div><strong>Number:</strong> {user.number || "-"}</div>
               <div><strong>Password:</strong> {user.password || "Hidden"}</div>
               <div className="flex gap-2 pt-2">
-                <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 text-sm">
+                <button  onClick={() => handleEditClick(user)} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 text-sm">
                   Edit
                 </button>
                  <button
@@ -154,7 +187,8 @@ function RecruiterID() {
             <div className="hidden md:block col-span-2">{user.number || "-"}</div>
             <div className="hidden md:block col-span-2">{user.password || "Hidden"}</div>
             <div className="hidden md:flex justify-center col-span-1">
-              <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 text-sm">
+              <button  onClick={() => handleEditClick(user)}
+              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 text-sm">
                 Edit
               </button>
             </div>
@@ -169,7 +203,63 @@ function RecruiterID() {
           </div>
         ))}
       </div>
-    </div>
+      
+      {/* Right-side Edit Form */}
+        {showEditModal && (
+          <div className="bg-white p-4 md:p-6 rounded-xl border border-[#0000001A] shadow-sm w-full md:w-1/3">
+            <h2 className="text-lg font-semibold mb-4">Edit Recruiter</h2>
+
+            <label className="block text-sm font-medium mb-1">Name</label>
+            <input
+              name="fullname"
+              value={form.fullname}
+              onChange={handleChange}
+              className="w-full border px-2 py-1 mb-3 rounded"
+            />
+
+            <label className="block text-sm font-medium mb-1">Email</label>
+            <input
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              className="w-full border px-2 py-1 mb-3 rounded"
+            />
+
+            <label className="block text-sm font-medium mb-1">Password</label>
+            <input
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              className="w-full border px-2 py-1 mb-3 rounded"
+            />
+
+            <label className="block text-sm font-medium mb-1">Number</label>
+            <input
+              name="number"
+              value={form.number}
+              onChange={handleChange}
+              className="w-full border px-2 py-1 mb-4 rounded"
+            />
+
+            <div className="flex justify-between">
+              <button
+                onClick={handleUpdate}
+                className="bg-green-400 hover:bg-green-500 text-white px-4 py-1 rounded"
+              >
+                Submit
+              </button>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-1 rounded"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+     </div>
+    
   );
 }
 
