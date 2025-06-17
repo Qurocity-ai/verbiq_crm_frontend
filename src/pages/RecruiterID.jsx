@@ -8,23 +8,28 @@ function RecruiterID() {
   const [recruiters, setRecruiters] = useState([]);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingRecruiterId, setEditingRecruiterId] = useState(null);
+  const [page,setPage]=useState(1);
+  const[totalPages,setTotalPages]=useState(1);
+  const [totalRecruiter,setTotalRecruiter]=useState();
 
   const token = localStorage.getItem('crm_token');
 
   useEffect(() => {
     fetchRecruiters();
-  }, []);
+  }, [page]);
 
 
 
   const fetchRecruiters = async () => {
     try {
-      const res = await axios.get('https://verbiq-crm.onrender.com/api/getallrecruiters', {
+      const res = await axios.get(`https://verbiq-crm.onrender.com/api/getallrecruiters?page=${page}&limit=5`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      });
+      })
       setRecruiters(res.data.recruiters);
+      setTotalPages(res.data.totalPages);
+      setTotalRecruiter(res.data.totalRecruiter);
     } catch (err) {
       console.error("Error fetching recruiters:", err);
     }
@@ -202,6 +207,40 @@ function RecruiterID() {
             </div>
           </div>
         ))}
+        
+        {/* pagination */}
+        {totalPages>1 &&
+<div className="flex justify-center items-center gap-6 py-6">
+  <button
+    onClick={() => setPage(page - 1)}
+    disabled={page === 1}
+    className={`px-4 py-2 rounded-lg font-medium transition-colors duration-300 ${
+      page === 1
+        ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+        : "bg-blue-500 text-white hover:bg-blue-600"
+    }`}
+  >
+    ← Prev
+  </button>
+
+  <span className="text-sm md:text-base font-semibold text-gray-700">
+    Page <span className="text-blue-600">{page}</span> of <span className="text-blue-600">{totalPages}</span>
+    <span className="ml-4 text-gray-600">Total: <strong>{totalRecruiter}</strong> recruiters</span>
+  </span>
+
+  <button
+    onClick={() => setPage(page + 1)}
+    disabled={page === totalPages}
+    className={`px-4 py-2 rounded-lg font-medium transition-colors duration-300 ${
+      page === totalPages
+        ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+        : "bg-blue-500 text-white hover:bg-blue-600"
+    }`}
+  >
+    Next →
+  </button>
+</div>
+}
       </div>
       
       {/* Right-side Edit Form */}
@@ -257,7 +296,9 @@ function RecruiterID() {
             </div>
           </div>
         )}
+        
       </div>
+    
      </div>
     
   );
