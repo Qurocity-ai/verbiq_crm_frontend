@@ -6,6 +6,9 @@ function Client() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [clients, setClients] = useState([]);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editClient, setEditClient] = useState(null);
+
   const [formData, setFormData] = useState({
     clientName: "",
     clientEmail: "",
@@ -46,11 +49,66 @@ function Client() {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     const token = localStorage.getItem("crm_token");
     try {
-      const response = await axios.post(
-        "https://verbiq-crm.onrender.com/api/createClient",
-        formData,
+      if (editMode) {
+        // Update existing record
+        await axios.put(
+          `https://verbiq-crm.onrender.com/api/updateClient/${editingId}`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      } else {
+        // Create new record
+        await axios.post(
+          "https://verbiq-crm.onrender.com/api/createClient",
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      }
+
+      // Reset form and edit mode
+      setFormData({
+        clientName: "",
+        clientEmail: "",
+        contactName: "",
+        contactEmail: "",
+        contactNumber: "",
+        jobTitle: "",
+        location: "",
+        employmentType: [],
+        workMode: [],
+        minCTC: "",
+        maxCTC: "",
+        noticePeriod: "",
+        language: "",
+        proficiency: "",
+      });
+      setEditMode(false);
+      setEditingId(null);
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem("crm_token");
+
+      const response = await axios.get(
+        "https://verbiq-crm.onrender.com/api/getClient",
+
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -58,46 +116,18 @@ function Client() {
           },
         }
       );
-      if (response.status === 200 || response.status === 201) {
-        setIsLoading(true);
-      }
-      console.log("Success:", response.data);
-      // Reset form or show success message
+      setClients(response.data.clients);
+      console.log("API Response:", response); // Check the full response
+      console.log("Client Data:", response.data);
+      console.log(clients);
+      setIsLoading(false);
     } catch (error) {
-      console.error("Error:", error);
-      // Handle error - show error message
-    } finally {
+      console.error("Error details:", error.response);
+      setError(error.message);
       setIsLoading(false);
     }
   };
-
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem("crm_token");
-
-        const response = await axios.get(
-          "https://verbiq-crm.onrender.com/api/getClient",
-
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        setClients(response.data.clients);
-        console.log("API Response:", response); // Check the full response
-        console.log("Client Data:", response.data);
-        console.log(clients);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error details:", error.response);
-        setError(error.message);
-        setIsLoading(false);
-      }
-    };
-
     fetchData();
     console.log(clients);
   }, []);
@@ -120,40 +150,76 @@ function Client() {
       console.error("Error deleting client:", error);
     }
   };
-  const handleEdit = (id) => {
-    console.log("Edit item with ID:", id);
-    // Implement your edit logic here
+
+  const handleEditClick = (clients) => {
+    setFormData({
+      clientName: clients.clientName,
+      clientEmail: clients.clientEmail,
+      contactName: clients.contactNumber,
+      contactEmail: clients.contactEmail,
+      contactNumber: clients.contactNumber,
+      jobTitle: clients.jobTitle,
+      location: clients.location,
+      employmentType: clients.employmentType || [],
+      workMode: clients.workMode || [],
+      minCTC: clients.minCTC,
+      maxCTC: clients.maxCTC,
+      noticePeriod: clients.noticePeriod,
+      language: clients.language,
+      proficiency: clients.proficiency,
+    });
+    setEditClient(clients._id);
+    setShowEditModal(true);
+  };
+
+  const handleUpdate = async () => {
+    const token = localStorage.getItem("crm_token");
+    try {
+      await axios.put(
+        `https://verbiq-crm.onrender.com/api/updateClient/${editClient}`,
+        formData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setFormData({ fullname: "", email: "", password: "", number: "" });
+      setEditClient(null);
+      setShowEditModal(false);
+      fetchData();
+    } catch (error) {
+      alert("Error updating recruiter", error.message);
+    }
   };
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this client?")) {
       await deleteClient(id);
-      // Update your UI after successful deletion
-      // For example: refreshClientList();
     }
   };
   return (
-    <div className="flex flex-col items-start min-h-screen p-6 bg-white">
+    <div className={`flex flex-col items-start min-h-screen p-6 bg-white `}>
       {/* Left-aligned small box */}
       {!showForm && (
         <>
-          <div className="border border-gray-300 rounded-lg p-4 w-[300px] shadow-sm">
-            <h2 className="mb-4 text-center text-base font-medium">
-              Add Client and Job Information
-            </h2>
-            <button
-              onClick={() => setShowForm(true)}
-              className="bg-green-400 hover:bg-green-500 text-black font-medium py-2 px-6 rounded block mx-auto"
+          <div className={`${showEditModal ? " hidden" : "blur-none"}`}>
+            <div
+              className={`border border-gray-300 rounded-lg p-4 w-[300px] shadow-sm `}
             >
-              Create
-            </button>
+              <h2 className="mb-4 text-center text-base font-medium">
+                Add Client and Job Information
+              </h2>
+              <button
+                onClick={() => setShowForm(true)}
+                className="bg-green-400 hover:bg-green-500 text-black font-medium py-2 px-6 rounded block mx-auto"
+              >
+                Create
+              </button>
+            </div>
             <div>
               {isLoading ? (
                 <div className="text-center mt-4">Loading...</div>
               ) : (
-                <div className="mb-4 bg-white rounded-lg shadow-md mt-20 fixed items-center overflow-x-scroll w-screen">
+                <div className="mb-4 bg-white rounded-lg shadow-md mt-20 flex items-center overflow-x-scroll w-screen pr-96">
                   {/* Scrollable Content */}
-                  <div className="flex-grow ">
+                  <div className="flex-growt">
                     <div className="flex p-4 min-w-max ">
                       {" "}
                       {/* min-w-max ensures content pushes div wider than parent */}
@@ -255,9 +321,9 @@ function Client() {
                             <div className="flex-shrink-0 w-40">
                               {client.proficiency}
                             </div>
-                            <div className="fixed  border-l sm:ml-[80.5%] ml-[55.4%] border-gray-200 bg-white">
+                            <div className="  border-l  border-gray-200 bg-white">
                               <button
-                                onClick={() => handleEdit(client._id)}
+                                onClick={() => handleEditClick(client)}
                                 className="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 mr-3 "
                               >
                                 <svg
@@ -313,6 +379,239 @@ function Client() {
       )}
 
       {/* Form Section */}
+      {showEditModal && (
+        <div className="border border-gray-300 rounded-lg p-6 mt-4 mx-auto w-full max-w-6xl shadow-sm z-[9999] bg-white ">
+          <form
+            className="grid grid-cols-3 gap-x-8 gap-y-2"
+            onSubmit={handleSubmit}
+          >
+            {/* Row 1 */}
+            <div>
+              <label className="block mb-1">Client Name</label>
+              <input
+                type="text"
+                onChange={handleChange}
+                name="clientName"
+                value={formData.clientName}
+                className="w-full border border-gray-300  rounded px-2 py-1"
+              />
+            </div>
+            <div>
+              <label className="block mb-1">Email</label>
+              <input
+                type="email"
+                onChange={handleChange}
+                name="clientEmail"
+                value={formData.clientEmail}
+                className="w-full border border-gray-300  rounded px-2 py-1"
+              />
+            </div>
+
+            {/* Contact Person Details */}
+            <div className="col-span-3 mt-4 font-medium">
+              Contact Person details
+            </div>
+            <div>
+              <label className="block mb-1">Name</label>
+              <input
+                type="text"
+                onChange={handleChange}
+                name="contactName"
+                value={formData.contactName}
+                className="w-full border border-gray-300  rounded px-2 py-1"
+              />
+            </div>
+            <div>
+              <label className="block mb-1">Email</label>
+              <input
+                type="email"
+                onChange={handleChange}
+                name="contactEmail"
+                value={formData.contactEmail}
+                className="w-full border border-gray-300  rounded px-2 py-1"
+              />
+            </div>
+            <div>
+              <label className="block mb-1">Number</label>
+              <input
+                type="number"
+                onChange={handleChange}
+                name="contactNumber"
+                value={formData.contactNumber}
+                className="w-full border border-gray-300  rounded px-2 py-1"
+              />
+            </div>
+
+            {/* Job Info */}
+            <div>
+              <label className="block mb-1">Job Title</label>
+              <input
+                type="text"
+                onChange={handleChange}
+                name="jobTitle"
+                value={formData.jobTitle}
+                className="w-full border border-gray-300  rounded px-2 py-1"
+              />
+            </div>
+            <div>
+              <label className="block mb-1">Location</label>
+              <input
+                type="text"
+                onChange={handleChange}
+                name="location"
+                value={formData.location}
+                className="w-full border border-gray-300  rounded px-2 py-1"
+              />
+            </div>
+            <div>
+              <label className="block mb-1">Employment Type</label>
+              <select
+                className="w-full border border-gray-300  rounded px-2 py-1"
+                name="employmentType"
+                value={formData.employmentType}
+                onChange={handleChange}
+              >
+                <option>Full Time</option>
+                <option>Contract</option>
+                <option>Freelance</option>
+              </select>
+            </div>
+            <div>
+              <label className="block mb-1">Work Mode</label>
+              <select
+                className="w-full border border-gray-300  rounded px-2 py-1"
+                name="workMode"
+                value={formData.workMode}
+                onChange={handleChange}
+              >
+                <option>On site</option>
+                <option>Remote</option>
+                <option>Hybrid</option>
+              </select>
+            </div>
+
+            {/* Salary */}
+            <div className="col-span-3 mt-4 font-medium">Salary range</div>
+            <div>
+              <label className="block mb-1">Minimum CTC</label>
+              <input
+                type="text"
+                onChange={handleChange}
+                name="minCTC"
+                value={formData.minCTC}
+                className="w-full border border-gray-300  rounded px-2 py-1"
+              />
+            </div>
+            <div>
+              <label className="block mb-1">Maximum CTC</label>
+              <input
+                type="text"
+                onChange={handleChange}
+                name="maxCTC"
+                value={formData.maxCTC}
+                className="w-full border border-gray-300  rounded px-2 py-1"
+              />
+            </div>
+            {/* Section Title */}
+            <div className="col-span-3 mt-4 font-medium"></div>
+            {/* Other */}
+            <div>
+              <label className="block mb-1">Notice period allowed</label>
+              <input
+                type="text"
+                onChange={handleChange}
+                name="noticePeriod"
+                value={formData.noticePeriod}
+                className="w-full border border-gray-300  rounded px-2 py-1"
+              />
+            </div>
+            <div>
+              <label className="block mb-1">Language Required</label>
+              <input
+                type="text"
+                onChange={handleChange}
+                name="language"
+                value={formData.language}
+                className="w-full border border-gray-300  rounded px-2 py-1"
+              />
+            </div>
+            <div>
+              <label className="block mb-1">Proficiency required</label>
+              <input
+                type="text"
+                onChange={handleChange}
+                name="proficiency"
+                value={formData.proficiency}
+                className="w-full border border-gray-300  rounded px-2 py-1"
+              />
+            </div>
+
+            {/* Submit */}
+            <div className="col-span-3 mt-4">
+              {/* <button
+                type="submit"
+                className="bg-[#46EB19] hover:bg-[#8bd178] text-white px-6 py-2 rounded"
+              >
+                Submit
+              </button> */}
+              <button
+                type="submit"
+                className={`" text-sm font-medium rounded-md text-white 
+                ${
+                  isLoading
+                    ? "bg-[#46EB19] cursor-not-allowed w-40 py-2 px-4"
+                    : "bg-[#46EB19] hover:bg-green-500 w-40 py-2 px-4"
+                }"`}
+                onClick={handleUpdate}
+              >
+                {isLoading ? (
+                  <div className="flex items-center justify-center">
+                    <svg
+                      className="animate-spin h-5 w-5 mr-2"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                  </div>
+                ) : showEditModal ? (
+                  "Update"
+                ) : (
+                  "Submit"
+                )}
+              </button>
+              {showEditModal && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditClient(null);
+                    setFormData({
+                      clientName: "",
+                      clientEmail: "",
+                      // ... reset other fields
+                    });
+                  }}
+                  className="ml-2 bg-gray-500 hover:bg-gray-600 text-white w-40 py-2 px-4 rounded-md text-sm font-medium"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
+      )}
       {showForm && (
         <div className="border border-gray-300 rounded-lg p-6 mt-4 w-full max-w-6xl shadow-sm">
           <form
@@ -496,6 +795,7 @@ function Client() {
                     ? "bg-[#46EB19] cursor-not-allowed w-40 py-2 px-4"
                     : "bg-[#46EB19] hover:bg-green-500 w-40 py-2 px-4"
                 }"`}
+                onClick={handleUpdate}
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
@@ -518,10 +818,29 @@ function Client() {
                       />
                     </svg>
                   </div>
+                ) : showEditModal ? (
+                  "Update"
                 ) : (
                   "Submit"
                 )}
               </button>
+              {showEditModal && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditClient(null);
+                    setFormData({
+                      clientName: "",
+                      clientEmail: "",
+                      // ... reset other fields
+                    });
+                  }}
+                  className="ml-2 bg-gray-500 hover:bg-gray-600 text-white w-40 py-2 px-4 rounded-md text-sm font-medium"
+                >
+                  Cancel
+                </button>
+              )}
             </div>
           </form>
         </div>
