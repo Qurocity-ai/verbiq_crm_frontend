@@ -93,7 +93,33 @@ const CandidateData = () => {
                 <input type="text" className="border px-2 py-1 rounded w-full" />
               </div>
             </div>
-
+             
+              <div className="grid grid-cols-5 gap-4 mb-4">
+              <div>
+                  <label className="block mb-1">Candidate Stage</label>
+              <select className="w-full border border-gray-300  rounded px-2 py-1">
+                <option>Sourced </option>
+                <option>Screened</option>
+                <option>Submitted</option>
+                <option>Shortlisted</option>
+                <option>Interview 1</option>
+                <option>Interview 2</option>
+                <option>Final Interview </option>
+                <option>Offered</option>
+                <option>Joined</option>
+                <option>Back out</option>
+                <option>Rejected</option>
+              </select>
+              </div>
+               <div>
+                <label className="block text-sm mb-1">Date of Interview</label>
+                <input type="text" className="border px-2 py-1 rounded w-full" />
+              </div>
+               <div>
+                <label className="block text-sm mb-1">Recruter</label>
+                <input type="text" className="border px-2 py-1 rounded w-full" />
+              </div>
+            </div>
             <div>
               <button
                 type="submit"
