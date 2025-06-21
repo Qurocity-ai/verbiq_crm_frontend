@@ -195,7 +195,9 @@ function Client() {
     }
   };
   return (
-    <div className={`flex flex-col items-start min-h-screen p-6 bg-white `}>
+    <div
+      className={`sm:fixed flex flex-col items-start min-h-screen p-6 bg-white `}
+    >
       {/* Left-aligned small box */}
       {!showForm && (
         <>
@@ -217,7 +219,7 @@ function Client() {
               {isLoading ? (
                 <div className="text-center mt-4">Loading...</div>
               ) : (
-                <div className="mb-4 bg-white rounded-lg shadow-md mt-20 flex items-center overflow-x-scroll w-screen pr-96">
+                <div className="mb-4 bg-white rounded-lg shadow-md mt-20 flex items-center overflow-x-scroll w-screen pr-72">
                   {/* Scrollable Content */}
                   <div className="flex-growt">
                     <div className="flex p-4 min-w-max ">
@@ -380,7 +382,7 @@ function Client() {
 
       {/* Form Section */}
       {showEditModal && (
-        <div className="border border-gray-300 rounded-lg p-6 mt-4 mx-auto w-full max-w-6xl shadow-sm z-[9999] bg-white ">
+        <div className="border border-gray-300 rounded-lg p-6 mt-4 mx-auto w-full max-w-7xl shadow-sm z-[9999] bg-white ">
           <form
             className="grid grid-cols-3 gap-x-8 gap-y-2"
             onSubmit={handleSubmit}
@@ -613,7 +615,7 @@ function Client() {
         </div>
       )}
       {showForm && (
-        <div className="border border-gray-300 rounded-lg p-6 mt-4 w-full max-w-6xl shadow-sm">
+        <div className="border border-gray-300 rounded-lg p-6 mt-4 w-full max-w-7xl shadow-sm">
           <form
             className="grid grid-cols-3 gap-x-8 gap-y-2"
             onSubmit={handleSubmit}
