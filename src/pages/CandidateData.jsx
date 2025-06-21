@@ -70,7 +70,7 @@ const CandidateData = () => {
         "https://verbiq-crm.onrender.com/api/getCandidate",
         {
           headers: {
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -133,7 +133,7 @@ const CandidateData = () => {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`,
+              Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify(payload),
           }
@@ -146,7 +146,7 @@ const CandidateData = () => {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`,
+              Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify(payload),
           }
@@ -203,7 +203,7 @@ const CandidateData = () => {
         {
           method: "DELETE",
           headers: {
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -279,7 +279,7 @@ const CandidateData = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(payload),
         });
@@ -297,9 +297,9 @@ const CandidateData = () => {
 
       {/* Cards: Only show when not in form mode */}
       {!showForm && (
-        <div className="flex gap-6">
+        <div className="flex gap-6 mb-8">
           {/* Add Candidate Data Card */}
-          <div className="border border-gray-300 rounded-md p-4 w-75 shadow-sm text-center">
+          <div className="border border-gray-300 rounded-md p-4 w-80 shadow-sm text-center">
             <p className="mb-3">Add Candidate data</p>
             <button
               onClick={() => {
@@ -313,7 +313,7 @@ const CandidateData = () => {
             </button>
           </div>
           {/* Upload Bulk Candidate Card */}
-          <div className="border border-gray-300 rounded-md p-4 w-75 shadow-sm text-center">
+          <div className="border border-gray-300 rounded-md p-4 w-80 shadow-sm text-center">
             <p className="mb-3">Upload bulk candidate</p>
             <button
               onClick={handleUploadClick}
@@ -336,7 +336,7 @@ const CandidateData = () => {
 
       {/* Only show form if showForm is true */}
       {showForm && (
-        <div className="border border-gray-300 rounded-md p-6 shadow-md w-full max-w-6xl mt-6">
+        <div className="border border-gray-300 rounded-md p-6 shadow-md w-full max-w-6xl h-120 mt-6">
           <form onSubmit={handleSubmit}>
             {/* Row 1 */}
             <div className="grid grid-cols-5 gap-2 mb-4">
@@ -533,69 +533,70 @@ const CandidateData = () => {
         </div>
       )}
 
-      {/* Only show flex-list if showForm is false */}
+      {/* Candidate list table display (full width, like screenshot) */}
       {!showForm && (
-        <div className="mt-10 border border-gray-300 rounded-md shadow-md bg-white">
-          <h2 className="text-lg font-semibold mb-3 px-6 pt-6"></h2>
+        <div className="mt-6 border border-gray-300 rounded-md shadow-md bg-white w-full">
           {isFetching ? (
             <div className="px-6 pb-6">Loading...</div>
           ) : (
-            <div className="px-6 pb-6">
+            <div className="px-0 pb-6">
               {candidates.length === 0 ? (
                 <div className="text-center py-4">
                   No candidates found.
                 </div>
               ) : (
-                <div>
-                  {/* List Header */}
-                  <div className=" font-semibold bg-gray-100 border-b border-gray-200 py-2 px-2 rounded-t hidden md:flex">
-                    <div className="w-13 shrink-0 ">S.No. </div>
-                    <div className="w-44">Name</div>
-                    <div className="w-52">Email</div>
-                    <div className="w-32">Language</div>
-                    <div className="w-36">Location</div>
-                    <div className="w-28">Current CTC</div>
-                    <div className="w-32">Expected CTC</div>
-                    <div className="w-28">Experience</div>
-                    <div className="w-32">Notice Period</div>
-                    {/* <div className="w-36">Stage</div> */}
-                    <div className="w-28">Actions</div>
-                  </div>
-                  {/* List Body */}
-                  {candidates.map((c, idx) => (
-                    <div
-                      key={c._id}
-                      className="flex flex-col md:flex-row items-start md:items-center border-b border-gray-100 hover:bg-gray-50 transition-all py-2 px-2"
-                    >
-                      <div className="w-12 shrink-0 font-medium">{idx + 1}</div>
-                      <div className="w-44">{c.candidateName}</div>
-                      <div className="w-52">{c.clientEmail}</div>
-                      <div className="w-32">{c.language}</div>
-                      <div className="w-36">{c.location}</div>
-                      <div className="w-28">{c.currentCTC}</div>
-                      <div className="w-32">{c.expectedCTC}</div>
-                      <div className="w-28">{c.experience}</div>
-                      <div className="w-32">{c.noticePeriod}</div>
-                      {/* <div className="w-36">{c.stage || ""}</div> */}
-                      <div className="w-28 flex gap-1 mt-2 md:mt-0">
-                        <button
-                          className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 transition"
-                          title="Edit Candidate"
-                          onClick={() => handleEdit(c)}
-                        >
-                          <EditIcon />
-                        </button>
-                        <button
-                          className="p-2 rounded-full bg-red-50 hover:bg-red-100 transition"
-                          title="Delete Candidate"
-                          onClick={() => handleDelete(c._id)}
-                        >
-                          <DeleteIcon />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <table className="w-full border-collapse table-auto">
+                  <thead>
+                    <tr className="bg-gray-100 border-b border-gray-200">
+                      <th className="py-3 px-2 font-semibold text-left">S.No.</th>
+                      <th className="py-3 px-2 font-semibold text-left">Name</th>
+                      <th className="py-3 px-2 font-semibold text-left">Email</th>
+                      <th className="py-3 px-2 font-semibold text-left">Language</th>
+                      <th className="py-3 px-2 font-semibold text-left">Location</th>
+                      <th className="py-3 px-2 font-semibold text-left">Current CTC</th>
+                      <th className="py-3 px-2 font-semibold text-left">Expected CTC</th>
+                      <th className="py-3 px-2 font-semibold text-left">Experience</th>
+                      <th className="py-3 px-2 font-semibold text-left">Notice Period</th>
+                      <th className="py-3 px-2 font-semibold text-left">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {candidates.map((c, idx) => (
+                      <tr
+                        key={c._id}
+                        className="border border-gray-200 hover:bg-gray-50 transition-all"
+                      >
+                        <td className="py-2 px-2 ">{idx + 1}</td>
+                        <td className="py-2 px-2">{c.candidateName}</td>
+                        <td className="py-2 px-2">{c.clientEmail}</td>
+                        <td className="py-2 px-2">{c.language}</td>
+                        <td className="py-2 px-2">{c.location}</td>
+                        <td className="py-2 px-2">{c.currentCTC}</td>
+                        <td className="py-2 px-2">{c.expectedCTC}</td>
+                        <td className="py-2 px-2">{c.experience}</td>
+                        <td className="py-2 px-2">{c.noticePeriod}</td>
+                        <td className="py-2 px-2">
+                          <div className="flex gap-2">
+                            <button
+                              className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 transition"
+                              title="Edit Candidate"
+                              onClick={() => handleEdit(c)}
+                            >
+                              <EditIcon />
+                            </button>
+                            <button
+                              className="p-2 rounded-full bg-red-50 hover:bg-red-100 transition"
+                              title="Delete Candidate"
+                              onClick={() => handleDelete(c._id)}
+                            >
+                              <DeleteIcon />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               )}
             </div>
           )}
