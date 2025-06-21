@@ -336,10 +336,10 @@ const CandidateData = () => {
 
       {/* Only show form if showForm is true */}
       {showForm && (
-        <div className="border border-gray-300 rounded-md p-6 shadow-md w-full max-w-4xl mt-6">
+        <div className="border border-gray-300 rounded-md p-6 shadow-md w-full max-w-6xl mt-6">
           <form onSubmit={handleSubmit}>
             {/* Row 1 */}
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-5 gap-2 mb-4">
               <div>
                 <label className="block text-sm mb-1">Client Name</label>
                 <input
@@ -347,7 +347,7 @@ const CandidateData = () => {
                   name="clientName"
                   value={form.clientName}
                   onChange={handleChange}
-                  className="border px-2 py-1 rounded w-full"
+                  className="border border-gray-300 px-2 py-1 rounded w-half"
                 />
               </div>
               <div>
@@ -357,7 +357,7 @@ const CandidateData = () => {
                   name="jobName"
                   value={form.jobName}
                   onChange={handleChange}
-                  className="border px-2 py-1 rounded w-full"
+                  className="border border-gray-300 px-2 py-1 rounded w-half"
                 />
               </div>
             </div>
@@ -370,7 +370,7 @@ const CandidateData = () => {
                   name="candidateName"
                   value={form.candidateName}
                   onChange={handleChange}
-                  className="border px-2 py-1 rounded w-full"
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
                   required
                 />
               </div>
@@ -381,7 +381,7 @@ const CandidateData = () => {
                   name="language"
                   value={form.language}
                   onChange={handleChange}
-                  className="border px-2 py-1 rounded w-full"
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
                 />
               </div>
               <div>
@@ -391,7 +391,7 @@ const CandidateData = () => {
                   name="proficiency"
                   value={form.proficiency}
                   onChange={handleChange}
-                  className="border px-2 py-1 rounded w-full"
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
                 />
               </div>
               <div>
@@ -401,7 +401,7 @@ const CandidateData = () => {
                   name="contactNumber"
                   value={form.contactNumber}
                   onChange={handleChange}
-                  className="border px-2 py-1 rounded w-full"
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
                 />
               </div>
               <div>
@@ -411,7 +411,7 @@ const CandidateData = () => {
                   name="clientEmail"
                   value={form.clientEmail}
                   onChange={handleChange}
-                  className="border px-2 py-1 rounded w-full"
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
                   required
                 />
               </div>
@@ -425,7 +425,7 @@ const CandidateData = () => {
                   name="location"
                   value={form.location}
                   onChange={handleChange}
-                  className="border px-2 py-1 rounded w-full"
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
                 />
               </div>
               <div>
@@ -435,7 +435,7 @@ const CandidateData = () => {
                   name="currentCTC"
                   value={form.currentCTC}
                   onChange={handleChange}
-                  className="border px-2 py-1 rounded w-full"
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
                 />
               </div>
               <div>
@@ -445,7 +445,7 @@ const CandidateData = () => {
                   name="expectedCTC"
                   value={form.expectedCTC}
                   onChange={handleChange}
-                  className="border px-2 py-1 rounded w-full"
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
                 />
               </div>
               <div>
@@ -455,7 +455,7 @@ const CandidateData = () => {
                   name="experience"
                   value={form.experience}
                   onChange={handleChange}
-                  className="border px-2 py-1 rounded w-full"
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
                 />
               </div>
               <div>
@@ -465,7 +465,7 @@ const CandidateData = () => {
                   name="noticePeriod"
                   value={form.noticePeriod}
                   onChange={handleChange}
-                  className="border px-2 py-1 rounded w-full"
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
                 />
               </div>
             </div>
@@ -500,7 +500,7 @@ const CandidateData = () => {
                   name="dateOfInterview"
                   value={form.dateOfInterview}
                   onChange={handleChange}
-                  className="border px-2 py-1 rounded w-full"
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
                 />
               </div>
               <div>
@@ -510,7 +510,7 @@ const CandidateData = () => {
                   name="recruiter"
                   value={form.recruiter}
                   onChange={handleChange}
-                  className="border px-2 py-1 rounded w-full"
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
                 />
               </div>
             </div>
@@ -533,69 +533,70 @@ const CandidateData = () => {
         </div>
       )}
 
-      {/* Only show table if showForm is false */}
+      {/* Only show flex-list if showForm is false */}
       {!showForm && (
         <div className="mt-10 border border-gray-300 rounded-md shadow-md bg-white">
-          <h2 className="text-lg font-semibold mb-3 px-6 pt-6">Candidate List</h2>
+          <h2 className="text-lg font-semibold mb-3 px-6 pt-6"></h2>
           {isFetching ? (
             <div className="px-6 pb-6">Loading...</div>
           ) : (
-            <div className="overflow-x-auto px-6 pb-6">
-              <table className="min-w-full border border-gray-200 bg-white">
-                <thead>
-                  <tr>
-                    <th className="border px-3 py-2">Name</th>
-                    <th className="border px-3 py-2">Email</th>
-                    <th className="border px-3 py-2">Language</th>
-                    <th className="border px-3 py-2">Location</th>
-                    <th className="border px-3 py-2">Current CTC</th>
-                    <th className="border px-3 py-2">Expected CTC</th>
-                    <th className="border px-3 py-2">Experience</th>
-                    <th className="border px-3 py-2">Notice Period</th>
-                    <th className="border px-3 py-2">Stage</th>
-                    <th className="border px-3 py-2">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {candidates.length === 0 ? (
-                    <tr>
-                      <td colSpan={10} className="text-center py-4">
-                        No candidates found.
-                      </td>
-                    </tr>
-                  ) : (
-                    candidates.map((c) => (
-                      <tr key={c._id} className="hover:bg-gray-100 transition-all">
-                        <td className="border px-3 py-2">{c.candidateName}</td>
-                        <td className="border px-3 py-2">{c.clientEmail}</td>
-                        <td className="border px-3 py-2">{c.language}</td>
-                        <td className="border px-3 py-2">{c.location}</td>
-                        <td className="border px-3 py-2">{c.currentCTC}</td>
-                        <td className="border px-3 py-2">{c.expectedCTC}</td>
-                        <td className="border px-3 py-2">{c.experience}</td>
-                        <td className="border px-3 py-2">{c.noticePeriod}</td>
-                        <td className="border px-3 py-2">{c.stage || ""}</td>
-                        <td className="border px-3 py-2 ">
-                          <button
-                            className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 transition"
-                            title="Edit Candidate"
-                            onClick={() => handleEdit(c)}
-                          >
-                            <EditIcon />
-                          </button>
-                          <button
-                            className="p-2 rounded-full bg-red-50 hover:bg-red-100 transition"
-                            title="Delete Candidate"
-                            onClick={() => handleDelete(c._id)}
-                          >
-                            <DeleteIcon />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+            <div className="px-6 pb-6">
+              {candidates.length === 0 ? (
+                <div className="text-center py-4">
+                  No candidates found.
+                </div>
+              ) : (
+                <div>
+                  {/* List Header */}
+                  <div className=" font-semibold bg-gray-100 border-b border-gray-200 py-2 px-2 rounded-t hidden md:flex">
+                    <div className="w-13 shrink-0 ">S.No. </div>
+                    <div className="w-44">Name</div>
+                    <div className="w-52">Email</div>
+                    <div className="w-32">Language</div>
+                    <div className="w-36">Location</div>
+                    <div className="w-28">Current CTC</div>
+                    <div className="w-32">Expected CTC</div>
+                    <div className="w-28">Experience</div>
+                    <div className="w-32">Notice Period</div>
+                    {/* <div className="w-36">Stage</div> */}
+                    <div className="w-28">Actions</div>
+                  </div>
+                  {/* List Body */}
+                  {candidates.map((c, idx) => (
+                    <div
+                      key={c._id}
+                      className="flex flex-col md:flex-row items-start md:items-center border-b border-gray-100 hover:bg-gray-50 transition-all py-2 px-2"
+                    >
+                      <div className="w-12 shrink-0 font-medium">{idx + 1}</div>
+                      <div className="w-44">{c.candidateName}</div>
+                      <div className="w-52">{c.clientEmail}</div>
+                      <div className="w-32">{c.language}</div>
+                      <div className="w-36">{c.location}</div>
+                      <div className="w-28">{c.currentCTC}</div>
+                      <div className="w-32">{c.expectedCTC}</div>
+                      <div className="w-28">{c.experience}</div>
+                      <div className="w-32">{c.noticePeriod}</div>
+                      {/* <div className="w-36">{c.stage || ""}</div> */}
+                      <div className="w-28 flex gap-1 mt-2 md:mt-0">
+                        <button
+                          className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 transition"
+                          title="Edit Candidate"
+                          onClick={() => handleEdit(c)}
+                        >
+                          <EditIcon />
+                        </button>
+                        <button
+                          className="p-2 rounded-full bg-red-50 hover:bg-red-100 transition"
+                          title="Delete Candidate"
+                          onClick={() => handleDelete(c._id)}
+                        >
+                          <DeleteIcon />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
