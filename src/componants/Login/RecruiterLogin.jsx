@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-function Login() {
+function RecruiterLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -13,7 +13,7 @@ function Login() {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "https://verbiq-crm.onrender.com/api/login",
+        "https://verbiq-crm.onrender.com/api/recruiterlogin",
         {
           email,
           password,
@@ -22,6 +22,7 @@ function Login() {
 
       const token = response.data.token;
       localStorage.setItem("crm_token", token); // Save token
+      console.log("Login successful, token:", response.data);
 
       // Navigate to dashboard
       navigate("/");
@@ -36,9 +37,7 @@ function Login() {
         onSubmit={handleLogin}
         className="bg-white p-8 rounded shadow-md w-full max-w-sm"
       >
-        <h2 className="text-2xl font-bold mb-6 text-center">
-          Super Admin Login
-        </h2>
+        <h2 className="text-2xl font-bold mb-6 text-center">Recuriter Login</h2>
         {error && <p className="text-red-500 mb-4">{error}</p>}
         <div className="mb-4">
           <label className="block mb-1">Email</label>
@@ -71,4 +70,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default RecruiterLogin;
