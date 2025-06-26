@@ -8,6 +8,9 @@ function Client() {
   const [clients, setClients] = useState([]);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editClient, setEditClient] = useState(null);
+  const [page,setPage]=useState(1);
+    const[totalPages,setTotalPages]=useState(1);
+    const [totalClient,setTotalClient]=useState();
 
   const [formData, setFormData] = useState({
     clientName: "",
@@ -107,7 +110,7 @@ function Client() {
       const token = localStorage.getItem("crm_token");
 
       const response = await axios.get(
-        "https://verbiq-crm.onrender.com/api/getClient",
+        `https://verbiq-crm.onrender.com/api/getClient?page=${page}&limit=5`,
 
         {
           headers: {
@@ -117,6 +120,8 @@ function Client() {
         }
       );
       setClients(response.data.clients);
+       setTotalPages(response.data.totalPages);
+      setTotalClient(response.data.totalClients);
       console.log("API Response:", response); // Check the full response
       console.log("Client Data:", response.data);
       console.log(clients);
@@ -130,7 +135,7 @@ function Client() {
   useEffect(() => {
     fetchData();
     console.log(clients);
-  }, []);
+  }, [page]);
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -376,6 +381,38 @@ function Client() {
                 </div>
               )}
             </div>
+            {totalPages>1 &&
+<div className="flex justify-center items-center gap-6 py-6">
+  <button
+    onClick={() => setPage(page - 1)}
+    disabled={page === 1}
+    className={`px-4 py-2 rounded-lg font-medium transition-colors duration-300 ${
+      page === 1
+        ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+        : "bg-blue-500 text-white hover:bg-blue-600"
+    }`}
+  >
+    ← Prev
+  </button>
+
+  <span className="text-sm md:text-base font-semibold text-gray-700">
+    Page <span className="text-blue-600">{page}</span> of <span className="text-blue-600">{totalPages}</span>
+    <span className="ml-4 text-gray-600">Total: <strong>{totalClient}</strong> Clients</span>
+  </span>
+
+  <button
+    onClick={() => setPage(page + 1)}
+    disabled={page === totalPages}
+    className={`px-4 py-2 rounded-lg font-medium transition-colors duration-300 ${
+      page === totalPages
+        ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+        : "bg-blue-500 text-white hover:bg-blue-600"
+    }`}
+  >
+    Next →
+  </button>
+</div>
+}
           </div>
         </>
       )}
@@ -779,6 +816,7 @@ function Client() {
                 value={formData.proficiency}
                 className="w-full border border-gray-300  rounded px-2 py-1"
               />
+            
             </div>
 
             {/* Submit */}

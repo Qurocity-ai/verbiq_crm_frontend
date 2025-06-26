@@ -56,18 +56,31 @@ const CandidateData = () => {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
 
+  //for recruiter input
+  const [recruiters, setRecruiters] = useState([]);
+  const [showRecruiterDropdown, setShowRecruiterDropdown] = useState(false);
+  const [showAllRecruiters, setShowAllRecruiters] = useState(false);
+
+  //candidate pagination
+  const[page,setPage]=useState(1);
+  const[totalPages,setTotalPages]=useState(1);
+  const[totaCandidates,setTotalCandidates]=useState(0);
+
+
+
   // Fetch all candidates with Authorization
   const fetchCandidates = async () => {
     setIsFetching(true);
     try {
-      const token = getToken();
+            const token = getToken();
+
       if (!token) {
         alert("No token found. Please log in.");
         setIsFetching(false);
         return;
       }
       const res = await fetch(
-        "https://verbiq-crm.onrender.com/api/getCandidate",
+        `https://verbiq-crm.onrender.com/api/getCandidate?page=${page}&limit=5`,
         {
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -81,15 +94,35 @@ const CandidateData = () => {
       }
       const data = await res.json();
       setCandidates(data.candidate || []);
+      setTotalPages(data.totalPages);
+      setTotalCandidates(data.totalCandidate);
     } catch (error) {
       alert("Failed to fetch candidates");
     }
     setIsFetching(false);
   };
 
+  const fetchTopRecruiters = async () => {
+  try {
+    const token = getToken();
+    const res = await fetch('https://verbiq-crm.onrender.com/api/toprecruiters', {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    setRecruiters(data || []);
+    setShowAllRecruiters(false); // Reset when fetching top recruiters
+  } catch (err) {
+    console.error("Error loading recruiters", err);
+    setRecruiters([]);
+  }
+};
+
   useEffect(() => {
     fetchCandidates();
-  }, []);
+    fetchTopRecruiters();
+  }, [page]);
 
   // Handle form field change
   const handleChange = (e) => {
@@ -292,6 +325,59 @@ const CandidateData = () => {
     setUploading(false);
   };
 
+
+  //for recruiter autosearch and select
+const handleRecruiterSearch = async (e) => {
+  const query = e.target.value;
+  setForm({ ...form, recruiter: query });
+
+  try {
+    const token = getToken();
+    const res = await fetch(`https://verbiq-crm.onrender.com/api/searchrecruiters?name=${query}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    setRecruiters(data);
+    setShowAllRecruiters(false); // Reset back to limited view
+  } catch (err) {
+    console.error("Error searching recruiters:", err);
+  }
+};
+
+
+// On recruiter dropdown item click
+const handleSelectRecruiter = (rec) => {
+  const name = typeof rec === 'string' ? rec : rec.fullname || '';
+  setForm((prev) => ({
+    ...prev,
+    recruiter: name,
+  }));
+  setShowRecruiterDropdown(false);
+};
+
+
+// Show all recruiters (when clicking "Show all")
+const handleShowAllRecruiters = async () => {
+  try {
+    const token = getToken(); // Get your auth token
+    const res = await fetch("https://verbiq-crm.onrender.com/api/allrecruiters", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+    setRecruiters(data);
+    setShowAllRecruiters(true);
+    setShowRecruiterDropdown(true); // ✅ Keep dropdown open
+  } catch (err) {
+    console.error("Error fetching all recruiters:", err);
+  }
+};
+
+
   return (
     <div className="p-6">
 
@@ -484,8 +570,12 @@ const CandidateData = () => {
                   <option>Screened</option>
                   <option>Submitted</option>
                   <option>Shortlisted</option>
-                  <option>Interview 1</option>
-                  <option>Interview 2</option>
+                  <option>RIVA</option>
+                  <option>AMCAT</option>
+                  <option>HR</option>
+                  <option>Ops</option>
+                  <option>Pipplet</option>
+                  <option>eLPT</option>
                   <option>Final Interview</option>
                   <option>Offered</option>
                   <option>Joined</option>
@@ -503,16 +593,56 @@ const CandidateData = () => {
                   className="border border-gray-300 px-2 py-1 rounded w-full"
                 />
               </div>
-              <div>
-                <label className="block text-sm mb-1">Recruiter</label>
-                <input
-                  type="text"
-                  name="recruiter"
-                  value={form.recruiter}
-                  onChange={handleChange}
-                  className="border border-gray-300 px-2 py-1 rounded w-full"
-                />
-              </div>
+
+              
+  <div className="relative">
+  <label className="block text-sm mb-1">Recruiter</label>
+  <input
+    type="text"
+    name="recruiter"
+    value={form.recruiter}
+    onChange={handleRecruiterSearch}
+    onFocus={() => {
+      if (form.recruiter === '') fetchTopRecruiters();
+      setShowRecruiterDropdown(true);
+    }}
+    onBlur={() => setTimeout(() => setShowRecruiterDropdown(false), 200)}
+    className="border border-gray-300 focus:border-black focus:ring-1 focus:ring-gray-800 px-2 py-1 rounded w-full outline-none transition"
+    autoComplete="off"
+  />
+
+  {showRecruiterDropdown && (
+    <ul className="absolute z-10 w-full bg-white border border-gray-400 rounded mt-1 shadow-md max-h-48 overflow-y-auto text-sm">
+      {recruiters.length > 0 ? (
+        <>
+          {recruiters.map((rec) => (
+            <li
+              key={rec._id || rec}
+              onMouseDown={() => handleSelectRecruiter(rec)}
+              className="px-4 py-2 cursor-pointer bg-white hover:bg-blue-600 hover:text-white text-gray-800 transition-colors rounded-sm"
+            >
+              {rec.fullname || rec}
+            </li>
+          ))}
+          {!showAllRecruiters && (
+            <li
+              onMouseDown={handleShowAllRecruiters}
+              className="px-4 py-2 cursor-pointer text-gray-800 hover:bg-blue-600 hover:text-white font-medium transition-colors rounded-sm"
+            >
+              Show all recruiters...
+            </li>
+          )}
+        </>
+      ) : (
+        <li className="px-4 py-2 text-gray-500 italic">
+          {form.recruiter ? "No recruiters found" : "Start typing to search"}
+        </li>
+      )}
+    </ul>
+  )}
+</div>
+
+
             </div>
             <div className="flex gap-2">
               <button
@@ -529,7 +659,10 @@ const CandidateData = () => {
                 Cancel
               </button>
             </div>
+            
           </form>
+          
+          
         </div>
       )}
 
@@ -593,14 +726,52 @@ const CandidateData = () => {
                           <DeleteIcon />
                         </button>
                       </div>
+                      
+                      
                     </div>
                   ))}
+
+                   {totalPages>1 &&
+<div className="flex justify-center items-center gap-6 py-6">
+  <button
+    onClick={() => setPage(page - 1)}
+    disabled={page === 1}
+    className={`px-4 py-2 rounded-lg font-medium transition-colors duration-300 ${
+      page === 1
+        ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+        : "bg-blue-500 text-white hover:bg-blue-600"
+    }`}
+  >
+    ← Prev
+  </button>
+
+  <span className="text-sm md:text-base font-semibold text-gray-700">
+    Page <span className="text-blue-600">{page}</span> of <span className="text-blue-600">{totalPages}</span>
+    <span className="ml-4 text-gray-600">Total: <strong>{totaCandidates}</strong> Candidates</span>
+  </span>
+
+  <button
+    onClick={() => setPage(page + 1)}
+    disabled={page === totalPages}
+    className={`px-4 py-2 rounded-lg font-medium transition-colors duration-300 ${
+      page === totalPages
+        ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+        : "bg-blue-500 text-white hover:bg-blue-600"
+    }`}
+  >
+    Next →
+  </button>
+</div>
+}
                 </div>
               )}
+             
             </div>
           )}
+
         </div>
       )}
+      
     </div>
   );
 };
