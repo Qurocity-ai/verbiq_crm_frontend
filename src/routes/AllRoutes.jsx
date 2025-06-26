@@ -2,6 +2,8 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "../componants/Dashboard/Dashboard"; // layout with Sidebar + Navbar
 import RecruiterID from "../pages/RecruiterID";
+import CartToSelect from "../componants/Login/CartToSelect";
+import RecruiterLogin from "../componants/Login/RecruiterLogin";
 import Client from "../pages/Client";
 import CandidateData from "../pages/CandidateData";
 import Login from "../componants/Login/Login";
@@ -12,7 +14,11 @@ const PrivateRoute = ({ children }) => {
 const AllRoutes = () => {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      <Route path="/login/" element={<CartToSelect />}>
+        <Route index element={<Login />} />
+        <Route path="superadmin" element={<Login />} />
+        <Route path="recuriter" element={<RecruiterLogin />} />
+      </Route>
       <Route
         path="/"
         element={
