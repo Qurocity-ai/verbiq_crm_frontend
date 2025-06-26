@@ -22,7 +22,7 @@ function Login() {
 
       const token = response.data.token;
       localStorage.setItem("crm_token", token); // Save token
-
+    localStorage.setItem("user_role", "superadmin");
       // Navigate to dashboard
       navigate("/");
     } catch (err) {
