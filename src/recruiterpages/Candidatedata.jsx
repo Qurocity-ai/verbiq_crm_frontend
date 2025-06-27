@@ -1,105 +1,623 @@
-import React, { useState } from "react";
+// import React, { useState } from "react";
 
-const CandidateData = () => {
+// const CandidateData = () => {
+//   const [showForm, setShowForm] = useState(false);
+
+//   const handleSubmit = (e) => {
+//     e.preventDefault();
+//     alert("Form submitted!");
+//   };
+
+//   return (
+//     <div className="p-6">
+//       {!showForm ? (
+//         <div className="flex gap-6">
+//           {/* Add Candidate Data Card */}
+//           <div className="border border-gray-300 rounded-md p-4 w-60 shadow-sm text-center">
+//             <p className="mb-3">Add Candidate data</p>
+//             <button
+//               onClick={() => setShowForm(true)}
+//               className="bg-green-600 text-white px-6 py-2 rounded-md"
+//             >
+//               Add
+//             </button>
+//           </div>
+
+//           {/* Upload Bulk Candidate Card */}
+//           <div className="border border-gray-300 rounded-md p-4 w-60 shadow-sm text-center">
+//             <p className="mb-3">Upload bulk candidate</p>
+//             <button className="bg-green-600 text-white px-6 py-2 rounded-md">
+//               Upload
+//             </button>
+//           </div>
+//         </div>
+//       ) : (
+//         <div className="border border-gray-300 rounded-md p-6 shadow-md w-full h-120">
+//           <form onSubmit={handleSubmit}>
+//             {/* Row 1 */}
+//             <div className="grid grid-cols-5 gap-4 mb-4">
+//               <div>
+//                 <label className="block text-sm mb-1">Client Name</label>
+//                 <input type="text" className="border px-2 py-1 rounded w-half" />
+//               </div>
+//               <div>
+//                 <label className="block text-sm mb-1">Job (process) Name</label>
+//                 <input type="text" className="border px-2 py-1 rounded w-half" />
+//               </div>
+//             </div>
+
+//             {/* Row 2 */}
+//             <div className="grid grid-cols-5 gap-4 mb-4">
+//               <div>
+//                 <label className="block text-sm mb-1">Candidate Name</label>
+//                 <input type="text" className="border px-2 py-1 rounded w-full" />
+//               </div>
+//               <div>
+//                 <label className="block text-sm mb-1">Language</label>
+//                 <input type="text" className="border px-2 py-1 rounded w-full" />
+//               </div>
+//               <div>
+//                 <label className="block text-sm mb-1">Proficiency</label>
+//                 <input type="text" className="border px-2 py-1 rounded w-full" />
+//               </div>
+//               <div>
+//                 <label className="block text-sm mb-1">Contact number</label>
+//                 <input type="text" className="border px-2 py-1 rounded w-full" />
+//               </div>
+//               <div>
+//                 <label className="block text-sm mb-1">Email Address</label>
+//                 <input type="email" className="border px-2 py-1 rounded w-full" />
+//               </div>
+//             </div>
+
+//             {/* Row 3 */}
+//             <div className="grid grid-cols-5 gap-4 mb-6">
+//               <div>
+//                 <label className="block text-sm mb-1">Location</label>
+//                 <input type="text" className="border px-2 py-1 rounded w-full" />
+//               </div>
+//               <div>
+//                 <label className="block text-sm mb-1">Current CTC</label>
+//                 <input type="text" className="border px-2 py-1 rounded w-full" />
+//               </div>
+//               <div>
+//                 <label className="block text-sm mb-1">Expected CTC</label>
+//                 <input type="text" className="border px-2 py-1 rounded w-full" />
+//               </div>
+//               <div>
+//                 <label className="block text-sm mb-1">Experience</label>
+//                 <input type="text" className="border px-2 py-1 rounded w-full" />
+//               </div>
+//               <div>
+//                 <label className="block text-sm mb-1">Notice period</label>
+//                 <input type="text" className="border px-2 py-1 rounded w-full" />
+//               </div>
+//             </div>
+//               {/* Row 4 */}
+//             <div className="grid grid-cols-3 gap-4 mb-4">
+//               <div>
+//                 <label className="block mb-1">Candidate Stage</label>
+//                 <select
+//                   name="candidateStage"
+                 
+//                   className="w-full border border-gray-300 rounded px-2 py-1"
+//                 >
+//                   <option value="">Select</option>
+//                   <option>Sourced</option>
+//                   <option>Screened</option>
+//                   <option>Submitted</option>
+//                   <option>Shortlisted</option>
+//                   <option>Interview 1</option>
+//                   <option>Interview 2</option>
+//                   <option>Final Interview</option>
+//                   <option>Offered</option>
+//                   <option>Joined</option>
+//                   <option>Back out</option>
+//                   <option>Rejected</option>
+//                 </select>
+//               </div>
+//               <div>
+//                 <label className="block text-sm mb-1">Date of Interview</label>
+//                 <input
+//                   type="date"
+//                   name="dateOfInterview"
+                 
+//                   className="border border-gray-300 px-2 py-1 rounded w-full"
+//                 />
+//               </div>
+//               <div>
+//                 <label className="block text-sm mb-1">Recruiter</label>
+//                 <input
+//                   type="text"
+//                   name="recruiter"
+                  
+                 
+//                   className="border border-gray-300 px-2 py-1 rounded w-full"
+//                 />
+//               </div>
+//             </div>
+//             <div>
+//               <button
+//                 type="submit"
+//                 className="bg-green-600 text-white px-8 py-2 rounded-md"
+//               >
+//                 Submit
+//               </button>
+//             </div>
+//           </form>
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default CandidateData;
+import React, { useState, useEffect, useRef } from "react";
+import * as XLSX from "xlsx";
+
+// SVG icons for Edit (Delete removed)
+const EditIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    fill="currentColor"
+    viewBox="0 0 24 24"
+    className="text-blue-600"
+  >
+    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.004 1.004 0 000-1.42l-2.34-2.34a1.004 1.004 0 00-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z" />
+  </svg>
+);
+
+const getToken = () => localStorage.getItem("crm_token");
+
+const initialFormState = {
+  clientName: "",
+  jobName: "",
+  candidateName: "",
+  language: "",
+  proficiency: "",
+  contactNumber: "",
+  clientEmail: "",
+  location: "",
+  currentCTC: "",
+  expectedCTC: "",
+  experience: "",
+  noticePeriod: "",
+  candidateStage: "",
+  dateOfInterview: "",
+  recruiter: "",
+};
+
+const Candidatedata = () => {
   const [showForm, setShowForm] = useState(false);
+  const [candidates, setCandidates] = useState([]);
+  const [form, setForm] = useState(initialFormState);
+  const [isFetching, setIsFetching] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
-  const handleSubmit = (e) => {
+  // Fetch all candidates with Authorization
+  const fetchCandidates = async () => {
+    setIsFetching(true);
+    try {
+      const token = getToken();
+      console.log("CRM Token (fetchCandidates):", token); // DEBUG
+      if (!token) {
+        alert("No token found. Please log in.");
+        setIsFetching(false);
+        return;
+      }
+      const res = await fetch(
+        "https://verbiq-crm.onrender.com/api/getCandidate",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (res.status === 401) {
+        alert("Unauthorized. Please log in again.");
+        setIsFetching(false);
+        return;
+      }
+      if (res.status === 403) {
+        alert("Forbidden. You do not have access to this resource.");
+        setIsFetching(false);
+        return;
+      }
+      if (!res.ok) {
+        alert("Failed to fetch candidates. Status: " + res.status);
+        setIsFetching(false);
+        return;
+      }
+      const data = await res.json();
+      setCandidates(data.candidate || []);
+    } catch (error) {
+      alert("Failed to fetch candidates");
+    }
+    setIsFetching(false);
+  };
+
+  useEffect(() => {
+    fetchCandidates();
+  }, []);
+
+  // Handle form field change
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  // Handle form submit for create and update
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert("Form submitted!");
+
+    const payload = {
+      candidateName: form.candidateName,
+      language: form.language,
+      proficiency: form.proficiency,
+      clientEmail: form.clientEmail,
+      location: form.location,
+      currentCTC: form.currentCTC,
+      expectedCTC: form.expectedCTC,
+      experience: form.experience,
+      noticePeriod: form.noticePeriod,
+      jobName: form.jobName,
+      clientName: form.clientName,
+      contactNumber: form.contactNumber,
+      stage: form.candidateStage,
+      DOI: form.dateOfInterview,
+      recruiter: form.recruiter,
+    };
+
+    try {
+      const token = getToken();
+      console.log("CRM Token (handleSubmit):", token); // DEBUG
+      if (!token) {
+        alert("No token found. Please log in.");
+        return;
+      }
+      let res;
+      if (editId) {
+        // Update
+        res = await fetch(
+          `https://verbiq-crm.onrender.com/api/updateCandidate/${editId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
+          }
+        );
+      } else {
+        // Create
+        res = await fetch(
+          "https://verbiq-crm.onrender.com/api/createCandidate",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
+          }
+        );
+      }
+      if (res.status === 401) {
+        alert("Unauthorized. Please log in again.");
+        return;
+      }
+      if (res.status === 403) {
+        alert("Forbidden. You do not have access to this resource.");
+        return;
+      }
+      if (!res.ok) throw new Error("Request failed");
+      await fetchCandidates();
+      setShowForm(false);
+      setForm(initialFormState);
+      setEditId(null);
+    } catch (error) {
+      alert("Failed to submit the candidate data");
+    }
+  };
+
+  // Handle Edit
+  const handleEdit = (candidate) => {
+    setEditId(candidate._id);
+    setShowForm(true);
+    setForm({
+      clientName: candidate.clientName || "",
+      jobName: candidate.jobName || "",
+      candidateName: candidate.candidateName || "",
+      language: candidate.language || "",
+      proficiency: candidate.proficiency || "",
+      contactNumber: candidate.contactNumber || "",
+      clientEmail: candidate.clientEmail || "",
+      location: candidate.location || "",
+      currentCTC: candidate.currentCTC || "",
+      expectedCTC: candidate.expectedCTC || "",
+      experience: candidate.experience || "",
+      noticePeriod: candidate.noticePeriod || "",
+      candidateStage: candidate.stage || "",
+      dateOfInterview: candidate.DOI ? candidate.DOI.split("T")[0] : "",
+      recruiter: candidate.recruiter || "",
+    });
+  };
+
+  // Cancel form
+  const handleCancel = () => {
+    setShowForm(false);
+    setForm(initialFormState);
+    setEditId(null);
+  };
+
+  // Handle file input click
+  const handleUploadClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+      fileInputRef.current.click();
+    }
+  };
+
+  // Handle file change (parse & upload one by one)
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const token = getToken();
+      console.log("CRM Token (handleFileChange):", token); // DEBUG
+      if (!token) {
+        alert("No token found. Please log in.");
+        setUploading(false);
+        return;
+      }
+      // Read file
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet);
+
+      // Now rows is an array of objects
+      for (let row of rows) {
+        // Map Excel fields to API fields as required
+        const payload = {
+          candidateName: row.candidateName || row["Candidate Name"] || "",
+          language: row.language || row["Language"] || "",
+          proficiency: row.proficiency || row["Proficiency"] || "",
+          clientEmail: row.clientEmail || row["Email"] || "",
+          location: row.location || row["Location"] || "",
+          currentCTC: row.currentCTC || row["Current CTC"] || "",
+          expectedCTC: row.expectedCTC || row["Expected CTC"] || "",
+          experience: row.experience || row["Experience"] || "",
+          noticePeriod: row.noticePeriod || row["Notice Period"] || "",
+          jobName: row.jobName || row["Job Name"] || "",
+          clientName: row.clientName || row["Client Name"] || "",
+          contactNumber: row.contactNumber || row["Contact Number"] || "",
+          stage: row.candidateStage || row["Candidate Stage"] || "",
+          DOI: row.dateOfInterview || row["Date of Interview"] || "",
+          recruiter: row.recruiter || row["Recruiter"] || "",
+        };
+
+        // Skip empty rows
+        if (!payload.candidateName || !payload.clientEmail) continue;
+
+        const res = await fetch("https://verbiq-crm.onrender.com/api/createCandidate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (res.status === 401) {
+          alert("Unauthorized. Please log in again.");
+          setUploading(false);
+          return;
+        }
+        if (res.status === 403) {
+          alert("Forbidden. You do not have access to this resource.");
+          setUploading(false);
+          return;
+        }
+      }
+      await fetchCandidates();
+      alert("Bulk upload successful!");
+    } catch (error) {
+      alert("Bulk upload failed");
+    }
+    setUploading(false);
   };
 
   return (
     <div className="p-6">
-      {!showForm ? (
-        <div className="flex gap-6">
+
+      {/* Cards: Only show when not in form mode */}
+      {!showForm && (
+        <div className="flex gap-6 mb-8">
           {/* Add Candidate Data Card */}
-          <div className="border border-gray-300 rounded-md p-4 w-60 shadow-sm text-center">
+          <div className="border border-gray-300 rounded-md p-4 w-80 shadow-sm text-center">
             <p className="mb-3">Add Candidate data</p>
             <button
-              onClick={() => setShowForm(true)}
-              className="bg-green-600 text-white px-6 py-2 rounded-md"
+              onClick={() => {
+                setShowForm(true);
+                setEditId(null);
+                setForm(initialFormState);
+              }}
+              className="bg-green-600 text-white px-6 py-2 w-50 rounded-md"
             >
               Add
             </button>
           </div>
-
           {/* Upload Bulk Candidate Card */}
-          <div className="border border-gray-300 rounded-md p-4 w-60 shadow-sm text-center">
+          <div className="border border-gray-300 rounded-md p-4 w-80 shadow-sm text-center">
             <p className="mb-3">Upload bulk candidate</p>
-            <button className="bg-green-600 text-white px-6 py-2 rounded-md">
-              Upload
+            <button
+              onClick={handleUploadClick}
+              className="bg-green-600 text-white px-6 py-2 w-50 rounded-md"
+              disabled={uploading}
+            >
+              {uploading ? "Uploading..." : "Upload"}
             </button>
+            <input
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              style={{ display: "none" }}
+            />
+            <div className="text-xs text-gray-500 mt-2">Supported: .xls, .xlsx, .csv</div>
           </div>
         </div>
-      ) : (
-        <div className="border border-gray-300 rounded-md p-6 shadow-md w-full h-120">
+      )}
+
+      {/* Only show form if showForm is true */}
+      {showForm && (
+        <div className="border border-gray-300 rounded-md p-6 shadow-md w-full max-w-6xl h-120 mt-6">
           <form onSubmit={handleSubmit}>
             {/* Row 1 */}
-            <div className="grid grid-cols-5 gap-4 mb-4">
+            <div className="grid grid-cols-5 gap-2 mb-4">
               <div>
                 <label className="block text-sm mb-1">Client Name</label>
-                <input type="text" className="border px-2 py-1 rounded w-half" />
+                <input
+                  type="text"
+                  name="clientName"
+                  value={form.clientName}
+                  onChange={handleChange}
+                  className="border border-gray-300 px-2 py-1 rounded w-half"
+                />
               </div>
               <div>
                 <label className="block text-sm mb-1">Job (process) Name</label>
-                <input type="text" className="border px-2 py-1 rounded w-half" />
+                <input
+                  type="text"
+                  name="jobName"
+                  value={form.jobName}
+                  onChange={handleChange}
+                  className="border border-gray-300 px-2 py-1 rounded w-half"
+                />
               </div>
             </div>
-
             {/* Row 2 */}
             <div className="grid grid-cols-5 gap-4 mb-4">
               <div>
                 <label className="block text-sm mb-1">Candidate Name</label>
-                <input type="text" className="border px-2 py-1 rounded w-full" />
+                <input
+                  type="text"
+                  name="candidateName"
+                  value={form.candidateName}
+                  onChange={handleChange}
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
+                  required
+                />
               </div>
               <div>
                 <label className="block text-sm mb-1">Language</label>
-                <input type="text" className="border px-2 py-1 rounded w-full" />
+                <input
+                  type="text"
+                  name="language"
+                  value={form.language}
+                  onChange={handleChange}
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
+                />
               </div>
               <div>
                 <label className="block text-sm mb-1">Proficiency</label>
-                <input type="text" className="border px-2 py-1 rounded w-full" />
+                <input
+                  type="text"
+                  name="proficiency"
+                  value={form.proficiency}
+                  onChange={handleChange}
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
+                />
               </div>
               <div>
                 <label className="block text-sm mb-1">Contact number</label>
-                <input type="text" className="border px-2 py-1 rounded w-full" />
+                <input
+                  type="text"
+                  name="contactNumber"
+                  value={form.contactNumber}
+                  onChange={handleChange}
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
+                />
               </div>
               <div>
                 <label className="block text-sm mb-1">Email Address</label>
-                <input type="email" className="border px-2 py-1 rounded w-full" />
+                <input
+                  type="email"
+                  name="clientEmail"
+                  value={form.clientEmail}
+                  onChange={handleChange}
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
+                  required
+                />
               </div>
             </div>
-
             {/* Row 3 */}
             <div className="grid grid-cols-5 gap-4 mb-6">
               <div>
                 <label className="block text-sm mb-1">Location</label>
-                <input type="text" className="border px-2 py-1 rounded w-full" />
+                <input
+                  type="text"
+                  name="location"
+                  value={form.location}
+                  onChange={handleChange}
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
+                />
               </div>
               <div>
                 <label className="block text-sm mb-1">Current CTC</label>
-                <input type="text" className="border px-2 py-1 rounded w-full" />
+                <input
+                  type="number"
+                  name="currentCTC"
+                  value={form.currentCTC}
+                  onChange={handleChange}
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
+                />
               </div>
               <div>
                 <label className="block text-sm mb-1">Expected CTC</label>
-                <input type="text" className="border px-2 py-1 rounded w-full" />
+                <input
+                  type="number"
+                  name="expectedCTC"
+                  value={form.expectedCTC}
+                  onChange={handleChange}
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
+                />
               </div>
               <div>
                 <label className="block text-sm mb-1">Experience</label>
-                <input type="text" className="border px-2 py-1 rounded w-full" />
+                <input
+                  type="text"
+                  name="experience"
+                  value={form.experience}
+                  onChange={handleChange}
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
+                />
               </div>
               <div>
                 <label className="block text-sm mb-1">Notice period</label>
-                <input type="text" className="border px-2 py-1 rounded w-full" />
+                <input
+                  type="text"
+                  name="noticePeriod"
+                  value={form.noticePeriod}
+                  onChange={handleChange}
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
+                />
               </div>
             </div>
-              {/* Row 4 */}
+            {/* Row 4 */}
             <div className="grid grid-cols-3 gap-4 mb-4">
               <div>
                 <label className="block mb-1">Candidate Stage</label>
                 <select
                   name="candidateStage"
-                 
+                  value={form.candidateStage}
+                  onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-2 py-1"
                 >
                   <option value="">Select</option>
@@ -121,7 +639,8 @@ const CandidateData = () => {
                 <input
                   type="date"
                   name="dateOfInterview"
-                 
+                  value={form.dateOfInterview}
+                  onChange={handleChange}
                   className="border border-gray-300 px-2 py-1 rounded w-full"
                 />
               </div>
@@ -130,26 +649,96 @@ const CandidateData = () => {
                 <input
                   type="text"
                   name="recruiter"
-                  
-                 
+                  value={form.recruiter}
+                  onChange={handleChange}
                   className="border border-gray-300 px-2 py-1 rounded w-full"
                 />
               </div>
             </div>
-            <div>
+            <div className="flex gap-2">
               <button
                 type="submit"
                 className="bg-green-600 text-white px-8 py-2 rounded-md"
               >
-                Submit
+                {editId ? "Update" : "Submit"}
+              </button>
+              <button
+                type="button"
+                className="bg-gray-400 text-white px-8 py-2 rounded-md"
+                onClick={handleCancel}
+              >
+                Cancel
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Candidate list table display (full width, like screenshot) */}
+      {!showForm && (
+        <div className="mt-6 border border-gray-300 rounded-md shadow-md bg-white w-full">
+          {isFetching ? (
+            <div className="px-6 pb-6">Loading...</div>
+          ) : (
+            <div className="px-0 pb-6">
+              {candidates.length === 0 ? (
+                <div className="text-center py-4">
+                  No candidates found.
+                </div>
+              ) : (
+                <table className="w-full border-collapse table-auto">
+                  <thead>
+                    <tr className="bg-gray-100 border-b border-gray-200">
+                      <th className="py-3 px-2 font-semibold text-left">S.No.</th>
+                      <th className="py-3 px-2 font-semibold text-left">Name</th>
+                      <th className="py-3 px-2 font-semibold text-left">Email</th>
+                      <th className="py-3 px-2 font-semibold text-left">Language</th>
+                      <th className="py-3 px-2 font-semibold text-left">Location</th>
+                      <th className="py-3 px-2 font-semibold text-left">Current CTC</th>
+                      <th className="py-3 px-2 font-semibold text-left">Expected CTC</th>
+                      <th className="py-3 px-2 font-semibold text-left">Experience</th>
+                      <th className="py-3 px-2 font-semibold text-left">Notice Period</th>
+                      <th className="py-3 px-2 font-semibold text-left">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {candidates.map((c, idx) => (
+                      <tr
+                        key={c._id}
+                        className="border border-gray-200 hover:bg-gray-50 transition-all"
+                      >
+                        <td className="py-2 px-2 ">{idx + 1}</td>
+                        <td className="py-2 px-2">{c.candidateName}</td>
+                        <td className="py-2 px-2">{c.clientEmail}</td>
+                        <td className="py-2 px-2">{c.language}</td>
+                        <td className="py-2 px-2">{c.location}</td>
+                        <td className="py-2 px-2">{c.currentCTC}</td>
+                        <td className="py-2 px-2">{c.expectedCTC}</td>
+                        <td className="py-2 px-2">{c.experience}</td>
+                        <td className="py-2 px-2">{c.noticePeriod}</td>
+                        <td className="py-2 px-2">
+                          <div className="flex gap-2">
+                            <button
+                              className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 transition"
+                              title="Edit Candidate"
+                              onClick={() => handleEdit(c)}
+                            >
+                              <EditIcon />
+                            </button>
+                            {/* Delete button removed */}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 };
 
-export default CandidateData;
-
+export default Candidatedata;

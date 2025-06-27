@@ -10,13 +10,7 @@ import Login from "../componants/Login/Login";
 import RecruiterDashboard from "../componants/RecruiterDashboard/RecruiterDashboard"
 import DataAssign from "../recruiterpages/DataAssign";
 import Candidatedata from "../recruiterpages/Candidatedata";
-// const PrivateRoute = ({ children }) => {
-//   const token = localStorage.getItem("crm_token");
-//   // return token ? children : <Navigate to="/login" />;
-//  const role = localStorage.getItem("user_role");
-//   return token && role === "recruiter" ? children : <Navigate to="/login" />;
-// };
-// Superadmin private route
+
 const SuperAdminRoute = ({ children }) => {
   const token = localStorage.getItem("crm_token");
   const role = localStorage.getItem("user_role");
