@@ -21,7 +21,7 @@ const RecruiterSidebar = ({ isOpen, closeSidebar }) => {
          <img src="/assets/virbiqlogo.png" alt="Logo" className="w-28 mb-5 pl-6" />
           <div className="border-b border-gray-100 mb-6"></div>
         <nav className="flex flex-col space-y-3">
-          <NavLink onClick={closeSidebar} to="/recruiterDashboard/candidateData" className={navLinkClass}>Candidate Data</NavLink>
+          <NavLink onClick={closeSidebar} to="/recruiterDashboard" className={navLinkClass}>Candidate Data</NavLink>
           <NavLink onClick={closeSidebar} to="/recruiterDashboard/Data-Assign" className={navLinkClass}>Data Assign</NavLink>
           
         </nav>
