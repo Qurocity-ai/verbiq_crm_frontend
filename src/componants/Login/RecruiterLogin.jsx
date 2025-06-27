@@ -17,6 +17,9 @@ function RecruiterLogin() {
         {
           email,
           password,
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
       );
 
@@ -27,7 +30,7 @@ function RecruiterLogin() {
       // Navigate to dashboard
       navigate("/recruiterDashboard");
     } catch (err) {
-      setError("Invalid credentials. Please try again.");
+      setError("Invalid credentials. Please try again.", err.message);
     }
   };
 

@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import * as XLSX from "xlsx";
+import axios from "axios";
 
 // SVG icons for Edit (Delete removed)
 const EditIcon = () => (
@@ -19,20 +19,20 @@ const EditIcon = () => (
 const getToken = () => localStorage.getItem("crm_token");
 
 const initialFormState = {
-  clientName: "",
-  jobName: "",
   candidateName: "",
+  clientName: "",
+  candidateEmail: "",
+  jobProcessName: "",
+  contactNo: "",
   language: "",
-  proficiency: "",
-  contactNumber: "",
-  clientEmail: "",
   location: "",
   currentCTC: "",
   expectedCTC: "",
   experience: "",
   noticePeriod: "",
   candidateStage: "",
-  dateOfInterview: "",
+  DOI: "",
+  proficiency: "",
   recruiter: "",
 };
 
@@ -52,7 +52,7 @@ const Candidatedata = () => {
       const token = getToken();
       console.log("CRM Token (fetchCandidates):", token); // DEBUG
       if (!token) {
-        alert("No token found. Please log in.");
+        console.log("No token found. Please log in.");
         setIsFetching(false);
         return;
       }
@@ -81,8 +81,9 @@ const Candidatedata = () => {
       }
       const data = await res.json();
       setCandidates(data.candidate || []);
+      console.log(res.data);
     } catch (error) {
-      alert("Failed to fetch candidates");
+      console.log("Failed to fetch candidates", error.message);
     }
     setIsFetching(false);
   };
@@ -102,19 +103,21 @@ const Candidatedata = () => {
 
     const payload = {
       candidateName: form.candidateName,
+      clientName: form.clientName,
+      candidateEmail: form.candidateEmail,
+      jobProcessName: form.jobProcessName,
+      contactNo: form.contactNo,
       language: form.language,
-      proficiency: form.proficiency,
-      clientEmail: form.clientEmail,
       location: form.location,
-      currentCTC: form.currentCTC,
-      expectedCTC: form.expectedCTC,
+      currentCTC: Number(form.currentCTC),
+      expectedCTC: Number(form.expectedCTC),
       experience: form.experience,
       noticePeriod: form.noticePeriod,
-      jobName: form.jobName,
-      clientName: form.clientName,
-      contactNumber: form.contactNumber,
-      stage: form.candidateStage,
-      DOI: form.dateOfInterview,
+      candidateStage: Array.isArray(form.candidateStage)
+        ? form.candidateStage
+        : [form.candidateStage],
+      DOI: form.DOI,
+      proficiency: form.proficiency,
       recruiter: form.recruiter,
     };
 
@@ -162,12 +165,16 @@ const Candidatedata = () => {
         return;
       }
       if (!res.ok) throw new Error("Request failed");
+      console.log("Response status:", res.data); // DEBUG
+      const createdCandidate = await res.json(); // <-- Get the created candidate
+      setCandidates((prev) => [...prev, createdCandidate.candidate]); // <-- Add to state
+
       await fetchCandidates();
-      setShowForm(false);
       setForm(initialFormState);
+      setShowForm(false);
       setEditId(null);
     } catch (error) {
-      alert("Failed to submit the candidate data");
+      alert("Failed to submit the candidate data", error.message);
     }
   };
 
@@ -241,25 +248,28 @@ const Candidatedata = () => {
           expectedCTC: row.expectedCTC || row["Expected CTC"] || "",
           experience: row.experience || row["Experience"] || "",
           noticePeriod: row.noticePeriod || row["Notice Period"] || "",
-          jobName: row.jobName || row["Job Name"] || "",
+          jobProcessName: row.jobProcessName || row["Job Name"] || "",
           clientName: row.clientName || row["Client Name"] || "",
-          contactNumber: row.contactNumber || row["Contact Number"] || "",
+          contactNo: row.contactNo || row["Contact Number"] || "",
           stage: row.candidateStage || row["Candidate Stage"] || "",
-          DOI: row.dateOfInterview || row["Date of Interview"] || "",
+          DOI: row.DOI || row["Date of Interview"] || "",
           recruiter: row.recruiter || row["Recruiter"] || "",
         };
 
         // Skip empty rows
         if (!payload.candidateName || !payload.clientEmail) continue;
 
-        const res = await fetch("https://verbiq-crm.onrender.com/api/createCandidate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
-        });
+        const res = await fetch(
+          "https://verbiq-crm.onrender.com/api/createCandidate",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
+          }
+        );
 
         if (res.status === 401) {
           alert("Unauthorized. Please log in again.");
@@ -275,14 +285,13 @@ const Candidatedata = () => {
       await fetchCandidates();
       alert("Bulk upload successful!");
     } catch (error) {
-      alert("Bulk upload failed");
+      alert("Bulk upload failed", error.message);
     }
     setUploading(false);
   };
 
   return (
     <div className="p-6">
-
       {/* Cards: Only show when not in form mode */}
       {!showForm && (
         <div className="flex gap-6 mb-8">
@@ -317,7 +326,9 @@ const Candidatedata = () => {
               onChange={handleFileChange}
               style={{ display: "none" }}
             />
-            <div className="text-xs text-gray-500 mt-2">Supported: .xls, .xlsx, .csv</div>
+            <div className="text-xs text-gray-500 mt-2">
+              Supported: .xls, .xlsx, .csv
+            </div>
           </div>
         </div>
       )}
@@ -342,8 +353,8 @@ const Candidatedata = () => {
                 <label className="block text-sm mb-1">Job (process) Name</label>
                 <input
                   type="text"
-                  name="jobName"
-                  value={form.jobName}
+                  name="jobProcessName"
+                  value={form.jobProcessName}
                   onChange={handleChange}
                   className="border border-gray-300 px-2 py-1 rounded w-half"
                 />
@@ -386,8 +397,8 @@ const Candidatedata = () => {
                 <label className="block text-sm mb-1">Contact number</label>
                 <input
                   type="text"
-                  name="contactNumber"
-                  value={form.contactNumber}
+                  name="contactNo"
+                  value={form.contactNo}
                   onChange={handleChange}
                   className="border border-gray-300 px-2 py-1 rounded w-full"
                 />
@@ -396,8 +407,8 @@ const Candidatedata = () => {
                 <label className="block text-sm mb-1">Email Address</label>
                 <input
                   type="email"
-                  name="clientEmail"
-                  value={form.clientEmail}
+                  name="candidateEmail"
+                  value={form.candidateEmail}
                   onChange={handleChange}
                   className="border border-gray-300 px-2 py-1 rounded w-full"
                   required
@@ -485,8 +496,8 @@ const Candidatedata = () => {
                 <label className="block text-sm mb-1">Date of Interview</label>
                 <input
                   type="date"
-                  name="dateOfInterview"
-                  value={form.dateOfInterview}
+                  name="DOI"
+                  value={form.DOI}
                   onChange={handleChange}
                   className="border border-gray-300 px-2 py-1 rounded w-full"
                 />
@@ -529,23 +540,41 @@ const Candidatedata = () => {
           ) : (
             <div className="px-0 pb-6">
               {candidates.length === 0 ? (
-                <div className="text-center py-4">
-                  No candidates found.
-                </div>
+                <div className="text-center py-4">No candidates found.</div>
               ) : (
                 <table className="w-full border-collapse table-auto">
                   <thead>
                     <tr className="bg-gray-100 border-b border-gray-200">
-                      <th className="py-3 px-2 font-semibold text-left">S.No.</th>
-                      <th className="py-3 px-2 font-semibold text-left">Name</th>
-                      <th className="py-3 px-2 font-semibold text-left">Email</th>
-                      <th className="py-3 px-2 font-semibold text-left">Language</th>
-                      <th className="py-3 px-2 font-semibold text-left">Location</th>
-                      <th className="py-3 px-2 font-semibold text-left">Current CTC</th>
-                      <th className="py-3 px-2 font-semibold text-left">Expected CTC</th>
-                      <th className="py-3 px-2 font-semibold text-left">Experience</th>
-                      <th className="py-3 px-2 font-semibold text-left">Notice Period</th>
-                      <th className="py-3 px-2 font-semibold text-left">Actions</th>
+                      <th className="py-3 px-2 font-semibold text-left">
+                        S.No.
+                      </th>
+                      <th className="py-3 px-2 font-semibold text-left">
+                        Name
+                      </th>
+                      <th className="py-3 px-2 font-semibold text-left">
+                        Email
+                      </th>
+                      <th className="py-3 px-2 font-semibold text-left">
+                        Language
+                      </th>
+                      <th className="py-3 px-2 font-semibold text-left">
+                        Location
+                      </th>
+                      <th className="py-3 px-2 font-semibold text-left">
+                        Current CTC
+                      </th>
+                      <th className="py-3 px-2 font-semibold text-left">
+                        Expected CTC
+                      </th>
+                      <th className="py-3 px-2 font-semibold text-left">
+                        Experience
+                      </th>
+                      <th className="py-3 px-2 font-semibold text-left">
+                        Notice Period
+                      </th>
+                      <th className="py-3 px-2 font-semibold text-left">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
