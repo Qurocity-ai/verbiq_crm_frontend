@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import * as XLSX from "xlsx";
+import axios from "axios";
 
 // SVG icons for Edit (Delete removed)
 const EditIcon = () => (
@@ -19,20 +19,20 @@ const EditIcon = () => (
 const getToken = () => localStorage.getItem("crm_token");
 
 const initialFormState = {
-  clientName: "",
-  jobName: "",
   candidateName: "",
+  clientName: "",
+  candidateEmail: "",
+  jobProcessName: "",
+  contactNo: "",
   language: "",
-  proficiency: "",
-  contactNumber: "",
-  clientEmail: "",
   location: "",
   currentCTC: "",
   expectedCTC: "",
   experience: "",
   noticePeriod: "",
   candidateStage: "",
-  dateOfInterview: "",
+  DOI: "",
+  proficiency: "",
   recruiter: "",
 };
 
@@ -62,7 +62,7 @@ const Candidatedata = () => {
     try {
       const token = getToken();
       if (!token) {
-        alert("No token found. Please log in.");
+        console.log("No token found. Please log in.");
         setIsFetching(false);
         return;
       }
@@ -92,12 +92,8 @@ const Candidatedata = () => {
       const data = await res.json();
       // Backend should send: { candidate: [], totalPages, totalCandidates }
       setCandidates(data.candidate || []);
-      setTotalPages(data.totalPages || 1);
-      setTotalCandidates(data.totalCandidates || (data.candidate ? data.candidate.length : 0));
-      setSelected([]); // reset selection on reload
-      setSelectAll(false);
     } catch (error) {
-      alert("Failed to fetch candidates");
+      console.log("Failed to fetch candidates", error.message);
     }
     setIsFetching(false);
   };
@@ -118,19 +114,21 @@ const Candidatedata = () => {
 
     const payload = {
       candidateName: form.candidateName,
+      clientName: form.clientName,
+      candidateEmail: form.candidateEmail,
+      jobProcessName: form.jobProcessName,
+      contactNo: form.contactNo,
       language: form.language,
-      proficiency: form.proficiency,
-      clientEmail: form.clientEmail,
       location: form.location,
-      currentCTC: form.currentCTC,
-      expectedCTC: form.expectedCTC,
+      currentCTC: Number(form.currentCTC),
+      expectedCTC: Number(form.expectedCTC),
       experience: form.experience,
       noticePeriod: form.noticePeriod,
-      jobName: form.jobName,
-      clientName: form.clientName,
-      contactNumber: form.contactNumber,
-      stage: form.candidateStage,
-      DOI: form.dateOfInterview,
+      candidateStage: Array.isArray(form.candidateStage)
+        ? form.candidateStage
+        : [form.candidateStage],
+      DOI: form.DOI,
+      proficiency: form.proficiency,
       recruiter: form.recruiter,
     };
 
@@ -177,12 +175,16 @@ const Candidatedata = () => {
         return;
       }
       if (!res.ok) throw new Error("Request failed");
+      console.log("Response status:", res.data); // DEBUG
+      const createdCandidate = await res.json(); // <-- Get the created candidate
+      setCandidates((prev) => [...prev, createdCandidate.candidate]); // <-- Add to state
+
       await fetchCandidates();
-      setShowForm(false);
       setForm(initialFormState);
+      setShowForm(false);
       setEditId(null);
     } catch (error) {
-      alert("Failed to submit the candidate data");
+      alert("Failed to submit the candidate data", error.message);
     }
   };
 
@@ -255,25 +257,28 @@ const Candidatedata = () => {
           expectedCTC: row.expectedCTC || row["Expected CTC"] || "",
           experience: row.experience || row["Experience"] || "",
           noticePeriod: row.noticePeriod || row["Notice Period"] || "",
-          jobName: row.jobName || row["Job Name"] || "",
+          jobProcessName: row.jobProcessName || row["Job Name"] || "",
           clientName: row.clientName || row["Client Name"] || "",
-          contactNumber: row.contactNumber || row["Contact Number"] || "",
+          contactNo: row.contactNo || row["Contact Number"] || "",
           stage: row.candidateStage || row["Candidate Stage"] || "",
-          DOI: row.dateOfInterview || row["Date of Interview"] || "",
+          DOI: row.DOI || row["Date of Interview"] || "",
           recruiter: row.recruiter || row["Recruiter"] || "",
         };
 
         // Skip empty rows
         if (!payload.candidateName || !payload.clientEmail) continue;
 
-        const res = await fetch("https://verbiq-crm.onrender.com/api/createCandidate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
-        });
+        const res = await fetch(
+          "https://verbiq-crm.onrender.com/api/createCandidate",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
+          }
+        );
 
         if (res.status === 401) {
           alert("Unauthorized. Please log in again.");
@@ -289,7 +294,7 @@ const Candidatedata = () => {
       await fetchCandidates();
       alert("Bulk upload successful!");
     } catch (error) {
-      alert("Bulk upload failed");
+      alert("Bulk upload failed", error.message);
     }
     setUploading(false);
   };
@@ -368,7 +373,9 @@ const Candidatedata = () => {
               onChange={handleFileChange}
               style={{ display: "none" }}
             />
-            <div className="text-xs text-gray-500 mt-2">Supported: .xls, .xlsx, .csv</div>
+            <div className="text-xs text-gray-500 mt-2">
+              Supported: .xls, .xlsx, .csv
+            </div>
           </div>
         </div>
       )}
@@ -393,8 +400,8 @@ const Candidatedata = () => {
                 <label className="block text-sm mb-1">Job (process) Name</label>
                 <input
                   type="text"
-                  name="jobName"
-                  value={form.jobName}
+                  name="jobProcessName"
+                  value={form.jobProcessName}
                   onChange={handleChange}
                   className="border border-gray-300 px-2 py-1 rounded w-half"
                 />
@@ -437,8 +444,8 @@ const Candidatedata = () => {
                 <label className="block text-sm mb-1">Contact number</label>
                 <input
                   type="text"
-                  name="contactNumber"
-                  value={form.contactNumber}
+                  name="contactNo"
+                  value={form.contactNo}
                   onChange={handleChange}
                   className="border border-gray-300 px-2 py-1 rounded w-full"
                 />
@@ -447,8 +454,8 @@ const Candidatedata = () => {
                 <label className="block text-sm mb-1">Email Address</label>
                 <input
                   type="email"
-                  name="clientEmail"
-                  value={form.clientEmail}
+                  name="candidateEmail"
+                  value={form.candidateEmail}
                   onChange={handleChange}
                   className="border border-gray-300 px-2 py-1 rounded w-full"
                   required
@@ -536,8 +543,8 @@ const Candidatedata = () => {
                 <label className="block text-sm mb-1">Date of Interview</label>
                 <input
                   type="date"
-                  name="dateOfInterview"
-                  value={form.dateOfInterview}
+                  name="DOI"
+                  value={form.DOI}
                   onChange={handleChange}
                   className="border border-gray-300 px-2 py-1 rounded w-full"
                 />
@@ -580,110 +587,54 @@ const Candidatedata = () => {
           ) : (
             <div className="px-0 pb-6">
               {candidates.length === 0 ? (
-                <div className="text-center py-4">
-                  No candidates found.
-                </div>
+                <div className="text-center py-4">No candidates found.</div>
               ) : (
-                <>
-                  <table className="w-full border-collapse table-auto">
-                    <thead>
-                      <tr className="bg-gray-100 border-b border-gray-200">
-                        <th className="py-3 px-2 font-semibold text-left">
-                          <input
-                            type="checkbox"
-                            checked={selectAll}
-                            onChange={handleSelectAll}
-                            aria-label="Select All"
-                          />
-                        </th>
-                        <th className="py-3 px-2 font-semibold text-left">S.No.</th>
-                        <th className="py-3 px-2 font-semibold text-left">Name</th>
-                        <th className="py-3 px-2 font-semibold text-left">Email</th>
-                        <th className="py-3 px-2 font-semibold text-left">Language</th>
-                        <th className="py-3 px-2 font-semibold text-left">Location</th>
-                        <th className="py-3 px-2 font-semibold text-left">Current CTC</th>
-                        <th className="py-3 px-2 font-semibold text-left">Expected CTC</th>
-                        <th className="py-3 px-2 font-semibold text-left">Experience</th>
-                        <th className="py-3 px-2 font-semibold text-left">Notice Period</th>
-                        <th className="py-3 px-2 font-semibold text-left">Actions</th>
+                <table className="w-full border-collapse table-auto">
+                  <thead>
+                    <tr className="bg-gray-100 border-b border-gray-200">
+                      <th className="py-3 px-2 font-semibold text-left">S.No.</th>
+                      <th className="py-3 px-2 font-semibold text-left">Name</th>
+                      <th className="py-3 px-2 font-semibold text-left">Email</th>
+                      <th className="py-3 px-2 font-semibold text-left">Language</th>
+                      <th className="py-3 px-2 font-semibold text-left">Location</th>
+                      <th className="py-3 px-2 font-semibold text-left">Current CTC</th>
+                      <th className="py-3 px-2 font-semibold text-left">Expected CTC</th>
+                      <th className="py-3 px-2 font-semibold text-left">Experience</th>
+                      <th className="py-3 px-2 font-semibold text-left">Notice Period</th>
+                      <th className="py-3 px-2 font-semibold text-left">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {candidates.map((c, idx) => (
+                      <tr
+                        key={c._id}
+                        className="border border-gray-200 hover:bg-gray-50 transition-all"
+                      >
+                        <td className="py-2 px-2 ">{idx + 1}</td>
+                        <td className="py-2 px-2">{c.candidateName}</td>
+                        <td className="py-2 px-2">{c.clientEmail}</td>
+                        <td className="py-2 px-2">{c.language}</td>
+                        <td className="py-2 px-2">{c.location}</td>
+                        <td className="py-2 px-2">{c.currentCTC}</td>
+                        <td className="py-2 px-2">{c.expectedCTC}</td>
+                        <td className="py-2 px-2">{c.experience}</td>
+                        <td className="py-2 px-2">{c.noticePeriod}</td>
+                        <td className="py-2 px-2">
+                          <div className="flex gap-2">
+                            <button
+                              className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 transition"
+                              title="Edit Candidate"
+                              onClick={() => handleEdit(c)}
+                            >
+                              <EditIcon />
+                            </button>
+                            {/* Delete button removed */}
+                          </div>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {candidates.map((c, idx) => (
-                        <tr
-                          key={c._id}
-                          className={
-                            "border border-gray-200 hover:bg-gray-50 transition-all" +
-                            (selected.includes(c._id) ? " bg-green-50" : "")
-                          }
-                        >
-                          <td className="py-2 px-2 text-center">
-                            <input
-                              type="checkbox"
-                              checked={selected.includes(c._id)}
-                              onChange={() => handleSelect(c._id)}
-                              aria-label={`Select row ${idx + 1}`}
-                            />
-                          </td>
-                          <td className="py-2 px-2">{(page - 1) * PAGE_LIMIT + idx + 1}</td>
-                          <td className="py-2 px-2">{c.candidateName}</td>
-                          <td className="py-2 px-2">{c.clientEmail}</td>
-                          <td className="py-2 px-2">{c.language}</td>
-                          <td className="py-2 px-2">{c.location}</td>
-                          <td className="py-2 px-2">{c.currentCTC}</td>
-                          <td className="py-2 px-2">{c.expectedCTC}</td>
-                          <td className="py-2 px-2">{c.experience}</td>
-                          <td className="py-2 px-2">{c.noticePeriod}</td>
-                          <td className="py-2 px-2">
-                            <div className="flex gap-2">
-                              <button
-                                className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 transition"
-                                title="Edit Candidate"
-                                onClick={() => handleEdit(c)}
-                              >
-                                <EditIcon />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-
-                  {/* Pagination controls */}
-                  {totalPages > 1 && (
-                    <div className="flex justify-center items-center gap-6 py-6">
-                      <button
-                        onClick={handlePrevPage}
-                        disabled={page === 1}
-                        className={`px-4 py-2 rounded-lg font-medium transition-colors duration-300 ${
-                          page === 1
-                            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                            : "bg-blue-500 text-white hover:bg-blue-600"
-                        }`}
-                      >
-                        ← Prev
-                      </button>
-
-                      <span className="text-sm md:text-base font-semibold text-gray-700">
-                        Page <span className="text-blue-600">{page}</span> of <span className="text-blue-600">{totalPages}</span>
-                        <span className="ml-4 text-gray-600">Total: <strong>{totalCandidates}</strong> candidates</span>
-                      </span>
-
-                      <button
-                        onClick={handleNextPage}
-                        disabled={page === totalPages}
-                        className={`px-4 py-2 rounded-lg font-medium transition-colors duration-300 ${
-                          page === totalPages
-                            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                            : "bg-blue-500 text-white hover:bg-blue-600"
-                        }`}
-                      >
-                        Next →
-                      </button>
-                    </div>
-                  )}
-                </>
+                    ))}
+                  </tbody>
+                </table>
               )}
             </div>
           )}
