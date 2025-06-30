@@ -17,17 +17,20 @@ function RecruiterLogin() {
         {
           email,
           password,
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
       );
 
       const token = response.data.token;
       localStorage.setItem("crm_token", token); // Save token
       console.log("Login successful, token:", response.data);
-
+      localStorage.setItem("user_role", "recruiter");
       // Navigate to dashboard
-      navigate("/");
+      navigate("/recruiterDashboard");
     } catch (err) {
-      setError("Invalid credentials. Please try again.");
+      setError("Invalid credentials. Please try again.", err.message);
     }
   };
 
