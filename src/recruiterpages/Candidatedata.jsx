@@ -92,6 +92,10 @@ const Candidatedata = () => {
       const data = await res.json();
       // Backend should send: { candidate: [], totalPages, totalCandidates }
       setCandidates(data.candidate || []);
+      setTotalPages(data.totalPages || 1);
+      setTotalCandidates(data.totalCandidates || (data.candidate ? data.candidate.length : 0));
+      setSelected([]);
+      setSelectAll(false);
     } catch (error) {
       console.log("Failed to fetch candidates", error.message);
     }
@@ -175,10 +179,8 @@ const Candidatedata = () => {
         return;
       }
       if (!res.ok) throw new Error("Request failed");
-      console.log("Response status:", res.data); // DEBUG
-      const createdCandidate = await res.json(); // <-- Get the created candidate
-      setCandidates((prev) => [...prev, createdCandidate.candidate]); // <-- Add to state
-
+      const createdCandidate = await res.json();
+      setCandidates((prev) => [...prev, createdCandidate.candidate]);
       await fetchCandidates();
       setForm(initialFormState);
       setShowForm(false);
@@ -194,19 +196,19 @@ const Candidatedata = () => {
     setShowForm(true);
     setForm({
       clientName: candidate.clientName || "",
-      jobName: candidate.jobName || "",
+      jobProcessName: candidate.jobProcessName || "",
       candidateName: candidate.candidateName || "",
       language: candidate.language || "",
       proficiency: candidate.proficiency || "",
-      contactNumber: candidate.contactNumber || "",
-      clientEmail: candidate.clientEmail || "",
+      contactNo: candidate.contactNo || "",
+      candidateEmail: candidate.candidateEmail || "",
       location: candidate.location || "",
       currentCTC: candidate.currentCTC || "",
       expectedCTC: candidate.expectedCTC || "",
       experience: candidate.experience || "",
       noticePeriod: candidate.noticePeriod || "",
-      candidateStage: candidate.stage || "",
-      dateOfInterview: candidate.DOI ? candidate.DOI.split("T")[0] : "",
+      candidateStage: candidate.candidateStage || "",
+      DOI: candidate.DOI ? candidate.DOI.split("T")[0] : "",
       recruiter: candidate.recruiter || "",
     });
   };
@@ -247,28 +249,36 @@ const Candidatedata = () => {
       // Now rows is an array of objects
       for (let row of rows) {
         // Map Excel fields to API fields as required
+        const candidateEmail =
+          row.candidateEmail ||
+          row["Candidate Email"] ||
+          row["Email"] ||
+          row["email"] ||
+          row["clientEmail"] ||
+          "";
+        if (!candidateEmail) continue; // skip if no email
+
         const payload = {
           candidateName: row.candidateName || row["Candidate Name"] || "",
+          clientName: row.clientName || row["Client Name"] || "",
+          candidateEmail,
+          jobProcessName: row.jobProcessName || row["Job Name"] || "",
+          contactNo: row.contactNo || row["Contact Number"] || "",
           language: row.language || row["Language"] || "",
-          proficiency: row.proficiency || row["Proficiency"] || "",
-          clientEmail: row.clientEmail || row["Email"] || "",
           location: row.location || row["Location"] || "",
           currentCTC: row.currentCTC || row["Current CTC"] || "",
           expectedCTC: row.expectedCTC || row["Expected CTC"] || "",
           experience: row.experience || row["Experience"] || "",
           noticePeriod: row.noticePeriod || row["Notice Period"] || "",
-          jobProcessName: row.jobProcessName || row["Job Name"] || "",
-          clientName: row.clientName || row["Client Name"] || "",
-          contactNo: row.contactNo || row["Contact Number"] || "",
-          stage: row.candidateStage || row["Candidate Stage"] || "",
+          candidateStage: row.candidateStage || row["Candidate Stage"] || "",
           DOI: row.DOI || row["Date of Interview"] || "",
+          proficiency: row.proficiency || row["Proficiency"] || "",
           recruiter: row.recruiter || row["Recruiter"] || "",
         };
 
-        // Skip empty rows
-        if (!payload.candidateName || !payload.clientEmail) continue;
+        if (!payload.candidateName || !payload.candidateEmail) continue;
 
-        const res = await fetch(
+        await fetch(
           "https://verbiq-crm.onrender.com/api/createCandidate",
           {
             method: "POST",
@@ -279,17 +289,6 @@ const Candidatedata = () => {
             body: JSON.stringify(payload),
           }
         );
-
-        if (res.status === 401) {
-          alert("Unauthorized. Please log in again.");
-          setUploading(false);
-          return;
-        }
-        if (res.status === 403) {
-          alert("Forbidden. You do not have access to this resource.");
-          setUploading(false);
-          return;
-        }
       }
       await fetchCandidates();
       alert("Bulk upload successful!");
@@ -579,7 +578,7 @@ const Candidatedata = () => {
         </div>
       )}
 
-      {/* Candidate list table display (full width, like screenshot) */}
+      {/* Candidate list table display (with selection, pagination, S.No.) */}
       {!showForm && (
         <div className="mt-6 border border-gray-300 rounded-md shadow-md bg-white w-full overflow-x-auto">
           {isFetching ? (
@@ -589,52 +588,105 @@ const Candidatedata = () => {
               {candidates.length === 0 ? (
                 <div className="text-center py-4">No candidates found.</div>
               ) : (
-                <table className="w-full border-collapse table-auto">
-                  <thead>
-                    <tr className="bg-gray-100 border-b border-gray-200">
-                      <th className="py-3 px-2 font-semibold text-left">S.No.</th>
-                      <th className="py-3 px-2 font-semibold text-left">Name</th>
-                      <th className="py-3 px-2 font-semibold text-left">Email</th>
-                      <th className="py-3 px-2 font-semibold text-left">Language</th>
-                      <th className="py-3 px-2 font-semibold text-left">Location</th>
-                      <th className="py-3 px-2 font-semibold text-left">Current CTC</th>
-                      <th className="py-3 px-2 font-semibold text-left">Expected CTC</th>
-                      <th className="py-3 px-2 font-semibold text-left">Experience</th>
-                      <th className="py-3 px-2 font-semibold text-left">Notice Period</th>
-                      <th className="py-3 px-2 font-semibold text-left">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {candidates.map((c, idx) => (
-                      <tr
-                        key={c._id}
-                        className="border border-gray-200 hover:bg-gray-50 transition-all"
-                      >
-                        <td className="py-2 px-2 ">{idx + 1}</td>
-                        <td className="py-2 px-2">{c.candidateName}</td>
-                        <td className="py-2 px-2">{c.clientEmail}</td>
-                        <td className="py-2 px-2">{c.language}</td>
-                        <td className="py-2 px-2">{c.location}</td>
-                        <td className="py-2 px-2">{c.currentCTC}</td>
-                        <td className="py-2 px-2">{c.expectedCTC}</td>
-                        <td className="py-2 px-2">{c.experience}</td>
-                        <td className="py-2 px-2">{c.noticePeriod}</td>
-                        <td className="py-2 px-2">
-                          <div className="flex gap-2">
-                            <button
-                              className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 transition"
-                              title="Edit Candidate"
-                              onClick={() => handleEdit(c)}
-                            >
-                              <EditIcon />
-                            </button>
-                            {/* Delete button removed */}
-                          </div>
-                        </td>
+                <>
+                  <table className="w-full border-collapse table-auto">
+                    <thead>
+                      <tr className="bg-gray-100 border-b border-gray-200">
+                        <th className="py-3 px-2 font-semibold text-left">
+                          <input
+                            type="checkbox"
+                            checked={selectAll}
+                            onChange={handleSelectAll}
+                            aria-label="Select All"
+                          />
+                        </th>
+                        <th className="py-3 px-2 font-semibold text-left">S.No.</th>
+                        <th className="py-3 px-2 font-semibold text-left">Name</th>
+                        <th className="py-3 px-2 font-semibold text-left">Email</th>
+                        <th className="py-3 px-2 font-semibold text-left">Language</th>
+                        <th className="py-3 px-2 font-semibold text-left">Location</th>
+                        <th className="py-3 px-2 font-semibold text-left">Current CTC</th>
+                        <th className="py-3 px-2 font-semibold text-left">Expected CTC</th>
+                        <th className="py-3 px-2 font-semibold text-left">Experience</th>
+                        <th className="py-3 px-2 font-semibold text-left">Notice Period</th>
+                        <th className="py-3 px-2 font-semibold text-left">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {candidates.map((c, idx) => (
+                        <tr
+                          key={c._id}
+                          className={
+                            "border border-gray-200 hover:bg-gray-50 transition-all" +
+                            (selected.includes(c._id) ? " bg-green-50" : "")
+                          }
+                        >
+                          <td className="py-2 px-2 text-center">
+                            <input
+                              type="checkbox"
+                              checked={selected.includes(c._id)}
+                              onChange={() => handleSelect(c._id)}
+                              aria-label={`Select row ${idx + 1}`}
+                            />
+                          </td>
+                          <td className="py-2 px-2">{(page - 1) * PAGE_LIMIT + idx + 1}</td>
+                          <td className="py-2 px-2">{c.candidateName}</td>
+                          <td className="py-2 px-2">{c.candidateEmail}</td>
+                          <td className="py-2 px-2">{c.language}</td>
+                          <td className="py-2 px-2">{c.location}</td>
+                          <td className="py-2 px-2">{c.currentCTC}</td>
+                          <td className="py-2 px-2">{c.expectedCTC}</td>
+                          <td className="py-2 px-2">{c.experience}</td>
+                          <td className="py-2 px-2">{c.noticePeriod}</td>
+                          <td className="py-2 px-2">
+                            <div className="flex gap-2">
+                              <button
+                                className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 transition"
+                                title="Edit Candidate"
+                                onClick={() => handleEdit(c)}
+                              >
+                                <EditIcon />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {/* Pagination controls */}
+                  {totalPages > 1 && (
+                    <div className="flex justify-center items-center gap-6 py-6">
+                      <button
+                        onClick={handlePrevPage}
+                        disabled={page === 1}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors duration-300 ${
+                          page === 1
+                            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                            : "bg-blue-500 text-white hover:bg-blue-600"
+                        }`}
+                      >
+                        ← Prev
+                      </button>
+
+                      <span className="text-sm md:text-base font-semibold text-gray-700">
+                        Page <span className="text-blue-600">{page}</span> of <span className="text-blue-600">{totalPages}</span>
+                        <span className="ml-4 text-gray-600">Total: <strong>{totalCandidates}</strong> candidates</span>
+                      </span>
+
+                      <button
+                        onClick={handleNextPage}
+                        disabled={page === totalPages}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors duration-300 ${
+                          page === totalPages
+                            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                            : "bg-blue-500 text-white hover:bg-blue-600"
+                        }`}
+                      >
+                        Next →
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
