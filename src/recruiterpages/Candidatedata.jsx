@@ -36,6 +36,8 @@ const initialFormState = {
   recruiter: "",
 };
 
+const PAGE_LIMIT = 5; // number of candidates per page
+
 const Candidatedata = () => {
   const [showForm, setShowForm] = useState(false);
   const [candidates, setCandidates] = useState([]);
@@ -45,19 +47,27 @@ const Candidatedata = () => {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Fetch all candidates with Authorization
+  // Pagination states
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCandidates, setTotalCandidates] = useState(0);
+
+  // Checkbox select states
+  const [selected, setSelected] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+
+  // Fetch all candidates with Authorization (paginated)
   const fetchCandidates = async () => {
     setIsFetching(true);
     try {
       const token = getToken();
-      console.log("CRM Token (fetchCandidates):", token); // DEBUG
       if (!token) {
         alert("No token found. Please log in.");
         setIsFetching(false);
         return;
       }
       const res = await fetch(
-        "https://verbiq-crm.onrender.com/api/getCandidate",
+        `https://verbiq-crm.onrender.com/api/getCandidate?page=${page}&limit=${PAGE_LIMIT}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -80,7 +90,12 @@ const Candidatedata = () => {
         return;
       }
       const data = await res.json();
+      // Backend should send: { candidate: [], totalPages, totalCandidates }
       setCandidates(data.candidate || []);
+      setTotalPages(data.totalPages || 1);
+      setTotalCandidates(data.totalCandidates || (data.candidate ? data.candidate.length : 0));
+      setSelected([]); // reset selection on reload
+      setSelectAll(false);
     } catch (error) {
       alert("Failed to fetch candidates");
     }
@@ -89,7 +104,8 @@ const Candidatedata = () => {
 
   useEffect(() => {
     fetchCandidates();
-  }, []);
+    // eslint-disable-next-line
+  }, [page]);
 
   // Handle form field change
   const handleChange = (e) => {
@@ -120,7 +136,6 @@ const Candidatedata = () => {
 
     try {
       const token = getToken();
-      console.log("CRM Token (handleSubmit):", token); // DEBUG
       if (!token) {
         alert("No token found. Please log in.");
         return;
@@ -216,7 +231,6 @@ const Candidatedata = () => {
     setUploading(true);
     try {
       const token = getToken();
-      console.log("CRM Token (handleFileChange):", token); // DEBUG
       if (!token) {
         alert("No token found. Please log in.");
         setUploading(false);
@@ -280,9 +294,46 @@ const Candidatedata = () => {
     setUploading(false);
   };
 
+  // Checkbox select logic
+  const handleSelectAll = (e) => {
+    const checked = e.target.checked;
+    setSelectAll(checked);
+    if (checked) {
+      setSelected(candidates.map((c) => c._id));
+    } else {
+      setSelected([]);
+    }
+  };
+
+  const handleSelect = (candidateId) => {
+    setSelected((prev) =>
+      prev.includes(candidateId)
+        ? prev.filter((id) => id !== candidateId)
+        : [...prev, candidateId]
+    );
+  };
+
+  useEffect(() => {
+    if (
+      candidates.length > 0 &&
+      selected.length === candidates.length
+    ) {
+      setSelectAll(true);
+    } else {
+      setSelectAll(false);
+    }
+  }, [selected, candidates]);
+
+  // Pagination controls
+  const handlePrevPage = () => {
+    if (page > 1) setPage(page - 1);
+  };
+  const handleNextPage = () => {
+    if (page < totalPages) setPage(page + 1);
+  };
+
   return (
     <div className="p-6">
-
       {/* Cards: Only show when not in form mode */}
       {!showForm && (
         <div className="flex gap-6 mb-8">
@@ -523,7 +574,7 @@ const Candidatedata = () => {
 
       {/* Candidate list table display (full width, like screenshot) */}
       {!showForm && (
-        <div className="mt-6 border border-gray-300 rounded-md shadow-md bg-white w-full">
+        <div className="mt-6 border border-gray-300 rounded-md shadow-md bg-white w-full overflow-x-auto">
           {isFetching ? (
             <div className="px-6 pb-6">Loading...</div>
           ) : (
@@ -533,52 +584,106 @@ const Candidatedata = () => {
                   No candidates found.
                 </div>
               ) : (
-                <table className="w-full border-collapse table-auto">
-                  <thead>
-                    <tr className="bg-gray-100 border-b border-gray-200">
-                      <th className="py-3 px-2 font-semibold text-left">S.No.</th>
-                      <th className="py-3 px-2 font-semibold text-left">Name</th>
-                      <th className="py-3 px-2 font-semibold text-left">Email</th>
-                      <th className="py-3 px-2 font-semibold text-left">Language</th>
-                      <th className="py-3 px-2 font-semibold text-left">Location</th>
-                      <th className="py-3 px-2 font-semibold text-left">Current CTC</th>
-                      <th className="py-3 px-2 font-semibold text-left">Expected CTC</th>
-                      <th className="py-3 px-2 font-semibold text-left">Experience</th>
-                      <th className="py-3 px-2 font-semibold text-left">Notice Period</th>
-                      <th className="py-3 px-2 font-semibold text-left">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {candidates.map((c, idx) => (
-                      <tr
-                        key={c._id}
-                        className="border border-gray-200 hover:bg-gray-50 transition-all"
-                      >
-                        <td className="py-2 px-2 ">{idx + 1}</td>
-                        <td className="py-2 px-2">{c.candidateName}</td>
-                        <td className="py-2 px-2">{c.clientEmail}</td>
-                        <td className="py-2 px-2">{c.language}</td>
-                        <td className="py-2 px-2">{c.location}</td>
-                        <td className="py-2 px-2">{c.currentCTC}</td>
-                        <td className="py-2 px-2">{c.expectedCTC}</td>
-                        <td className="py-2 px-2">{c.experience}</td>
-                        <td className="py-2 px-2">{c.noticePeriod}</td>
-                        <td className="py-2 px-2">
-                          <div className="flex gap-2">
-                            <button
-                              className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 transition"
-                              title="Edit Candidate"
-                              onClick={() => handleEdit(c)}
-                            >
-                              <EditIcon />
-                            </button>
-                            {/* Delete button removed */}
-                          </div>
-                        </td>
+                <>
+                  <table className="w-full border-collapse table-auto">
+                    <thead>
+                      <tr className="bg-gray-100 border-b border-gray-200">
+                        <th className="py-3 px-2 font-semibold text-left">
+                          <input
+                            type="checkbox"
+                            checked={selectAll}
+                            onChange={handleSelectAll}
+                            aria-label="Select All"
+                          />
+                        </th>
+                        <th className="py-3 px-2 font-semibold text-left">S.No.</th>
+                        <th className="py-3 px-2 font-semibold text-left">Name</th>
+                        <th className="py-3 px-2 font-semibold text-left">Email</th>
+                        <th className="py-3 px-2 font-semibold text-left">Language</th>
+                        <th className="py-3 px-2 font-semibold text-left">Location</th>
+                        <th className="py-3 px-2 font-semibold text-left">Current CTC</th>
+                        <th className="py-3 px-2 font-semibold text-left">Expected CTC</th>
+                        <th className="py-3 px-2 font-semibold text-left">Experience</th>
+                        <th className="py-3 px-2 font-semibold text-left">Notice Period</th>
+                        <th className="py-3 px-2 font-semibold text-left">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {candidates.map((c, idx) => (
+                        <tr
+                          key={c._id}
+                          className={
+                            "border border-gray-200 hover:bg-gray-50 transition-all" +
+                            (selected.includes(c._id) ? " bg-green-50" : "")
+                          }
+                        >
+                          <td className="py-2 px-2 text-center">
+                            <input
+                              type="checkbox"
+                              checked={selected.includes(c._id)}
+                              onChange={() => handleSelect(c._id)}
+                              aria-label={`Select row ${idx + 1}`}
+                            />
+                          </td>
+                          <td className="py-2 px-2">{(page - 1) * PAGE_LIMIT + idx + 1}</td>
+                          <td className="py-2 px-2">{c.candidateName}</td>
+                          <td className="py-2 px-2">{c.clientEmail}</td>
+                          <td className="py-2 px-2">{c.language}</td>
+                          <td className="py-2 px-2">{c.location}</td>
+                          <td className="py-2 px-2">{c.currentCTC}</td>
+                          <td className="py-2 px-2">{c.expectedCTC}</td>
+                          <td className="py-2 px-2">{c.experience}</td>
+                          <td className="py-2 px-2">{c.noticePeriod}</td>
+                          <td className="py-2 px-2">
+                            <div className="flex gap-2">
+                              <button
+                                className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 transition"
+                                title="Edit Candidate"
+                                onClick={() => handleEdit(c)}
+                              >
+                                <EditIcon />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {/* Pagination controls */}
+                  {totalPages > 1 && (
+                    <div className="flex justify-center items-center gap-6 py-6">
+                      <button
+                        onClick={handlePrevPage}
+                        disabled={page === 1}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors duration-300 ${
+                          page === 1
+                            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                            : "bg-blue-500 text-white hover:bg-blue-600"
+                        }`}
+                      >
+                        ← Prev
+                      </button>
+
+                      <span className="text-sm md:text-base font-semibold text-gray-700">
+                        Page <span className="text-blue-600">{page}</span> of <span className="text-blue-600">{totalPages}</span>
+                        <span className="ml-4 text-gray-600">Total: <strong>{totalCandidates}</strong> candidates</span>
+                      </span>
+
+                      <button
+                        onClick={handleNextPage}
+                        disabled={page === totalPages}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors duration-300 ${
+                          page === totalPages
+                            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                            : "bg-blue-500 text-white hover:bg-blue-600"
+                        }`}
+                      >
+                        Next →
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
