@@ -70,7 +70,7 @@ const CandidateData = () => {
         "https://verbiq-crm.onrender.com/api/getCandidate",
         {
           headers: {
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -133,7 +133,7 @@ const CandidateData = () => {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`,
+              Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify(payload),
           }
@@ -146,7 +146,7 @@ const CandidateData = () => {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`,
+              Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify(payload),
           }
@@ -203,7 +203,7 @@ const CandidateData = () => {
         {
           method: "DELETE",
           headers: {
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -279,7 +279,7 @@ const CandidateData = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(payload),
         });
@@ -294,7 +294,6 @@ const CandidateData = () => {
 
   return (
     <div className="p-6">
-
       {/* Cards: Only show when not in form mode */}
       {!showForm && (
         <div className="flex gap-6">
@@ -329,7 +328,9 @@ const CandidateData = () => {
               onChange={handleFileChange}
               style={{ display: "none" }}
             />
-            <div className="text-xs text-gray-500 mt-2">Supported: .xls, .xlsx, .csv</div>
+            <div className="text-xs text-gray-500 mt-2">
+              Supported: .xls, .xlsx, .csv
+            </div>
           </div>
         </div>
       )}
@@ -542,9 +543,7 @@ const CandidateData = () => {
           ) : (
             <div className="px-6 pb-6">
               {candidates.length === 0 ? (
-                <div className="text-center py-4">
-                  No candidates found.
-                </div>
+                <div className="text-center py-4">No candidates found.</div>
               ) : (
                 <div>
                   {/* List Header */}
