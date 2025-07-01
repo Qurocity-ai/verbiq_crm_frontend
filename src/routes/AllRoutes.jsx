@@ -7,7 +7,7 @@ import RecruiterLogin from "../componants/Login/RecruiterLogin";
 import Client from "../pages/Client";
 import CandidateData from "../pages/CandidateData";
 import Login from "../componants/Login/Login";
-import RecruiterDashboard from "../componants/RecruiterDashboard/RecruiterDashboard"
+import RecruiterDashboard from "../componants/RecruiterDashboard/RecruiterDashboard";
 import DataAssign from "../recruiterpages/DataAssign";
 import Candidatedata from "../recruiterpages/Candidatedata";
 
@@ -28,7 +28,7 @@ const AllRoutes = () => {
     <Routes>
       <Route path="/login/" element={<CartToSelect />}>
         <Route index element={<Login />} />
-        <Route path="superadmin"  element={<Login />} />
+        <Route path="superadmin" element={<Login />} />
         <Route path="recuriter" element={<RecruiterLogin />} />
       </Route>
       <Route
@@ -50,12 +50,11 @@ const AllRoutes = () => {
             <RecruiterDashboard />
           </RecruiterRoute>
         }
-       
       >
-      <Route index element={<Candidatedata />} /> 
+        <Route index element={<Candidatedata />} />
         <Route path="candidateData" index element={<Candidatedata />} />
-         <Route path="Data-Assign" element={<DataAssign />} />
-    </Route>
+        <Route path="Data-Assign" element={<DataAssign />} />
+      </Route>
     </Routes>
   );
 };
