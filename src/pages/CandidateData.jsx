@@ -26,7 +26,43 @@ const DeleteIcon = () => (
     <path d="M6 19c0 1.1.9 2 2 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
   </svg>
 );
-
+const FilterIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="30"
+    height="30"
+    fill="currentColor"
+    viewBox="0 0 24 24"
+    className="text-blue-600"
+  >
+    <path d="M3 5a1 1 0 0 1 1-1h16a1 1 0 0 1 .8 1.6l-6.6 8.8V19a1 1 0 0 1-1.45.89l-2-1A1 1 0 0 1 10 18v-4.6L3.2 6.6A1 1 0 0 1 3 5z" />
+  </svg>
+);
+const ClearFilterIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="30"
+    height="30"
+    fill="currentColor"
+    viewBox="0 0 24 24"
+    className="text-red-600"
+  >
+    <circle
+      cx="12"
+      cy="12"
+      r="10"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    />
+    <path
+      d="M15 9l-6 6M9 9l6 6"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+);
 const getToken = () => localStorage.getItem("crm_token");
 
 const initialFormState = {
@@ -55,6 +91,15 @@ const CandidateData = () => {
   const [editId, setEditId] = useState(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
+
+  const [filters, setFilters] = useState({
+    currentCTC: "",
+    expectedCTC: "",
+    location: "",
+    language: "",
+    experience: "",
+    noticePeriod: "",
+  });
 
   // Fetch all candidates with Authorization
   const fetchCandidates = async () => {
@@ -291,7 +336,98 @@ const CandidateData = () => {
     }
     setUploading(false);
   };
+  const handleFilterInputChange = (field, value) => {
+    setFilters((prev) => ({ ...prev, [field]: value }));
+  };
+  const clearFilters = () => {
+    setFilters({
+      currentCTC: "",
+      expectedCTC: "",
+      location: "",
+      language: "",
+      experience: "",
+      noticePeriod: "",
+    });
+    fetchCandidates();
+  };
+  const addFilters = async () => {
+    setIsFetching(true);
+    let filteredCandidates = null;
 
+    // Apply filters one by one (since each API filters by one field)
+    for (const [field, value] of Object.entries(filters)) {
+      if (value) {
+        let url = "";
+        let body = {};
+        switch (field) {
+          case "currentCTC":
+            url = "https://verbiq-crm.onrender.com/api/filterByCurrentCTC";
+            body = [{ CTC: value }];
+            break;
+          case "expectedCTC":
+            url = "https://verbiq-crm.onrender.com/api/filterByExpectedCTC";
+            body = [{ CTC: value }];
+            break;
+          case "location":
+            url = "https://verbiq-crm.onrender.com/api/filterByLocation";
+            body = [value];
+            break;
+          case "language":
+            url = "https://verbiq-crm.onrender.com/api/filterByLanguage";
+            body = [value];
+            break;
+          case "experience":
+            url = "https://verbiq-crm.onrender.com/api/filterByExperience";
+            body = [{ experience: value }];
+            break;
+          case "noticePeriod":
+            url = "https://verbiq-crm.onrender.com/api/filterByNoticePeriod";
+            body = [{ noticePeriod: value }];
+            break;
+          default:
+            continue;
+        }
+        try {
+          const token = getToken();
+          if (!token) {
+            alert("No token found. Please log in.");
+            setIsFetching(false);
+            return;
+          }
+          const res = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(body),
+          });
+          if (res.status === 401) {
+            alert("Unauthorized. Please log in again.");
+            setIsFetching(false);
+            return;
+          }
+          const data = await res.json();
+          // Intersect results if multiple filters, else just assign
+          const result = Array.isArray(data) ? data : data.candidate || [];
+          if (filteredCandidates === null) {
+            filteredCandidates = result;
+          } else {
+            // Intersect by _id
+            filteredCandidates = filteredCandidates.filter((c) =>
+              result.some((d) => d._id === c._id)
+            );
+          }
+        } catch (err) {
+          alert("Failed to filter candidates", err.message);
+          setIsFetching(false);
+          return;
+        }
+      }
+    }
+    setCandidates(filteredCandidates !== null ? filteredCandidates : []);
+    setIsFetching(false);
+  };
   return (
     <div className="p-6">
       {/* Cards: Only show when not in form mode */}
@@ -536,70 +672,155 @@ const CandidateData = () => {
 
       {/* Candidate list table display (full width, like screenshot) */}
       {!showForm && (
-        <div className="mt-6 border border-gray-300 rounded-md shadow-md bg-white w-full">
-          {isFetching ? (
-            <div className="px-6 pb-6">Loading...</div>
-          ) : (
-            <div className="px-0 pb-6">
-              {candidates.length === 0 ? (
-                <div className="text-center py-4">No candidates found.</div>
-              ) : (
-                <table className="w-full border-collapse table-auto">
-                  <thead>
-                    <tr className="bg-gray-100 border-b border-gray-200">
-                      <th className="py-3 px-2 font-semibold text-left">S.No.</th>
-                      <th className="py-3 px-2 font-semibold text-left">Name</th>
-                      <th className="py-3 px-2 font-semibold text-left">Email</th>
-                      <th className="py-3 px-2 font-semibold text-left">Language</th>
-                      <th className="py-3 px-2 font-semibold text-left">Location</th>
-                      <th className="py-3 px-2 font-semibold text-left">Current CTC</th>
-                      <th className="py-3 px-2 font-semibold text-left">Expected CTC</th>
-                      <th className="py-3 px-2 font-semibold text-left">Experience</th>
-                      <th className="py-3 px-2 font-semibold text-left">Notice Period</th>
-                      <th className="py-3 px-2 font-semibold text-left">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {candidates.map((c, idx) => (
-                      <tr
-                        key={c._id}
-                        className="border border-gray-200 hover:bg-gray-50 transition-all"
-                      >
-                        <td className="py-2 px-2 ">{idx + 1}</td>
-                        <td className="py-2 px-2">{c.candidateName}</td>
-                        <td className="py-2 px-2">{c.clientEmail}</td>
-                        <td className="py-2 px-2">{c.language}</td>
-                        <td className="py-2 px-2">{c.location}</td>
-                        <td className="py-2 px-2">{c.currentCTC}</td>
-                        <td className="py-2 px-2">{c.expectedCTC}</td>
-                        <td className="py-2 px-2">{c.experience}</td>
-                        <td className="py-2 px-2">{c.noticePeriod}</td>
-                        <td className="py-2 px-2">
-                          <div className="flex gap-2">
-                            <button
-                              className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 transition"
-                              title="Edit Candidate"
-                              onClick={() => handleEdit(c)}
-                            >
-                              <EditIcon />
-                            </button>
-                            <button
-                              className="p-2 rounded-full bg-red-50 hover:bg-red-100 transition"
-                              title="Delete Candidate"
-                              onClick={() => handleDelete(c._id)}
-                            >
-                              <DeleteIcon />
-                            </button>
-                          </div>
-                        </td>
+        <>
+          {/*filter bar*/}
+          <div className="flex gap-4 mt-8 mb-4">
+            <input
+              type="number"
+              placeholder="Current CTC"
+              onChange={(e) =>
+                handleFilterInputChange("currentCTC", e.target.value)
+              }
+              className="border px-2 py-1 rounded"
+            />
+            <input
+              type="number"
+              placeholder="Expected CTC"
+              onChange={(e) =>
+                handleFilterInputChange("expectedCTC", e.target.value)
+              }
+              className="border px-2 py-1 rounded"
+            />
+            <input
+              type="text"
+              placeholder="Location"
+              onChange={(e) =>
+                handleFilterInputChange("location", e.target.value)
+              }
+              className="border px-2 py-1 rounded"
+            />
+            <input
+              type="text"
+              placeholder="Language"
+              onChange={(e) =>
+                handleFilterInputChange("language", e.target.value)
+              }
+              className="border px-2 py-1 rounded"
+            />
+            <input
+              type="text"
+              placeholder="Experience"
+              onChange={(e) =>
+                handleFilterInputChange("experience", e.target.value)
+              }
+              className="border px-2 py-1 rounded"
+            />
+            <input
+              type="text"
+              placeholder="Notice Period"
+              onChange={(e) =>
+                handleFilterInputChange("noticePeriod", e.target.value)
+              }
+              className="border px-2 py-1 rounded"
+            />
+            <button
+              onClick={addFilters}
+              className="p-3 rounded-full bg-blue-50 hover:bg-blue-100 transition"
+            >
+              <FilterIcon />
+            </button>
+            <button
+              onClick={clearFilters}
+              className="p-3 rounded-full bg-red-50 hover:bg-red-100 transition"
+            >
+              <ClearFilterIcon />
+            </button>
+          </div>
+          <div className="mt-6 border border-gray-300 rounded-md shadow-md bg-white w-full">
+            {isFetching ? (
+              <div className="px-6 pb-6">Loading...</div>
+            ) : (
+              <div className="px-0 pb-6">
+                {candidates.length === 0 ? (
+                  <div className="text-center py-4">No candidates found.</div>
+                ) : (
+                  <table className="w-full border-collapse table-auto">
+                    <thead>
+                      <tr className="bg-gray-100 border-b border-gray-200">
+                        <th className="py-3 px-2 font-semibold text-left">
+                          S.No.
+                        </th>
+                        <th className="py-3 px-2 font-semibold text-left">
+                          Name
+                        </th>
+                        <th className="py-3 px-2 font-semibold text-left">
+                          Email
+                        </th>
+                        <th className="py-3 px-2 font-semibold text-left">
+                          Language
+                        </th>
+                        <th className="py-3 px-2 font-semibold text-left">
+                          Location
+                        </th>
+                        <th className="py-3 px-2 font-semibold text-left">
+                          Current CTC
+                        </th>
+                        <th className="py-3 px-2 font-semibold text-left">
+                          Expected CTC
+                        </th>
+                        <th className="py-3 px-2 font-semibold text-left">
+                          Experience
+                        </th>
+                        <th className="py-3 px-2 font-semibold text-left">
+                          Notice Period
+                        </th>
+                        <th className="py-3 px-2 font-semibold text-left">
+                          Actions
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          )}
-        </div>
+                    </thead>
+                    <tbody>
+                      {candidates.map((c, idx) => (
+                        <tr
+                          key={c._id}
+                          className="border border-gray-200 hover:bg-gray-50 transition-all"
+                        >
+                          <td className="py-2 px-2 ">{idx + 1}</td>
+                          <td className="py-2 px-2">{c.candidateName}</td>
+                          <td className="py-2 px-2">{c.clientEmail}</td>
+                          <td className="py-2 px-2">{c.language}</td>
+                          <td className="py-2 px-2">{c.location}</td>
+                          <td className="py-2 px-2">{c.currentCTC}</td>
+                          <td className="py-2 px-2">{c.expectedCTC}</td>
+                          <td className="py-2 px-2">{c.experience}</td>
+                          <td className="py-2 px-2">{c.noticePeriod}</td>
+                          <td className="py-2 px-2">
+                            <div className="flex gap-2">
+                              <button
+                                className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 transition"
+                                title="Edit Candidate"
+                                onClick={() => handleEdit(c)}
+                              >
+                                <EditIcon />
+                              </button>
+                              <button
+                                className="p-2 rounded-full bg-red-50 hover:bg-red-100 transition"
+                                title="Delete Candidate"
+                                onClick={() => handleDelete(c._id)}
+                              >
+                                <DeleteIcon />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
+          </div>
+        </>
       )}
     </div>
   );
