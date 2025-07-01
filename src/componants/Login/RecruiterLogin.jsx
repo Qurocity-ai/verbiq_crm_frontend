@@ -17,6 +17,9 @@ function RecruiterLogin() {
         {
           email,
           password,
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
       );
 

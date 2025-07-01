@@ -22,11 +22,13 @@ function Login() {
 
       const token = response.data.token;
       localStorage.setItem("crm_token", token); // Save token
+      localStorage.setItem("user_role", "superadmin");
+      console.log(response.data);
 
       // Navigate to dashboard
       navigate("/");
     } catch (err) {
-      setError("Invalid credentials. Please try again.");
+      setError("Invalid credentials. Please try again.", err.message);
     }
   };
 
