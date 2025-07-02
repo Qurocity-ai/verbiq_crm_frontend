@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
+const PAGE_LIMIT = 5;
+
 function Client() {
   const [showForm, setShowForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,6 +56,10 @@ function Client() {
     language: "",
     proficiency: "",
   });
+
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalClient, setTotalClient] = useState(0);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -136,7 +142,7 @@ function Client() {
       const token = localStorage.getItem("crm_token");
 
       const response = await axios.get(
-        "https://verbiq-crm.onrender.com/api/getClient",
+        `https://verbiq-crm.onrender.com/api/getClient?page=${page}&limit=${PAGE_LIMIT}`,
 
         {
           headers: {
@@ -149,6 +155,11 @@ function Client() {
       console.log("API Response:", response); // Check the full response
       console.log("Client Data:", response.data);
       console.log(clients);
+      const data = await response.data;
+      setTotalPages(data.totalPages || 1);
+      setTotalClient(
+        data.totalClient || (data.clients ? data.clients.length : 0)
+      );
       setIsLoading(false);
     } catch (error) {
       console.error("Error details:", error.response);
@@ -159,7 +170,7 @@ function Client() {
   useEffect(() => {
     fetchData();
     console.log(clients);
-  }, []);
+  }, [page]);
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -217,7 +228,12 @@ function Client() {
       alert("Error updating recruiter", error.message);
     }
   };
-
+  const handlePrevPage = () => {
+    if (page > 1) setPage(page - 1);
+  };
+  const handleNextPage = () => {
+    if (page < totalPages) setPage(page + 1);
+  };
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this client?")) {
       await deleteClient(id);
@@ -619,237 +635,274 @@ function Client() {
         </div>
       )}
       {showForm && (
-        <div className="border border-gray-300 rounded-lg p-6 mt-4 w-full max-w-7xl shadow-sm">
-          <form
-            className="grid grid-cols-3 gap-x-8 gap-y-2"
-            onSubmit={handleSubmit}
-          >
-            {/* Row 1 */}
-            <div>
-              <label className="block mb-1">Client Name</label>
-              <input
-                type="text"
-                onChange={handleChange}
-                name="clientName"
-                value={formData.clientName}
-                className="w-full border border-gray-300  rounded px-2 py-1"
-              />
-            </div>
-            <div>
-              <label className="block mb-1">Email</label>
-              <input
-                type="email"
-                onChange={handleChange}
-                name="clientEmail"
-                value={formData.clientEmail}
-                className="w-full border border-gray-300  rounded px-2 py-1"
-              />
-            </div>
+        <>
+          <div className="border border-gray-300 rounded-lg p-6 mt-4 w-full max-w-7xl shadow-sm">
+            <form
+              className="grid grid-cols-3 gap-x-8 gap-y-2"
+              onSubmit={handleSubmit}
+            >
+              {/* Row 1 */}
+              <div>
+                <label className="block mb-1">Client Name</label>
+                <input
+                  type="text"
+                  onChange={handleChange}
+                  name="clientName"
+                  value={formData.clientName}
+                  className="w-full border border-gray-300  rounded px-2 py-1"
+                />
+              </div>
+              <div>
+                <label className="block mb-1">Email</label>
+                <input
+                  type="email"
+                  onChange={handleChange}
+                  name="clientEmail"
+                  value={formData.clientEmail}
+                  className="w-full border border-gray-300  rounded px-2 py-1"
+                />
+              </div>
 
-            {/* Contact Person Details */}
-            <div className="col-span-3 mt-4 font-medium">
-              Contact Person details
-            </div>
-            <div>
-              <label className="block mb-1">Name</label>
-              <input
-                type="text"
-                onChange={handleChange}
-                name="contactName"
-                value={formData.contactName}
-                className="w-full border border-gray-300  rounded px-2 py-1"
-              />
-            </div>
-            <div>
-              <label className="block mb-1">Email</label>
-              <input
-                type="email"
-                onChange={handleChange}
-                name="contactEmail"
-                value={formData.contactEmail}
-                className="w-full border border-gray-300  rounded px-2 py-1"
-              />
-            </div>
-            <div>
-              <label className="block mb-1">Number</label>
-              <input
-                type="number"
-                onChange={handleChange}
-                name="contactNumber"
-                value={formData.contactNumber}
-                className="w-full border border-gray-300  rounded px-2 py-1"
-              />
-            </div>
+              {/* Contact Person Details */}
+              <div className="col-span-3 mt-4 font-medium">
+                Contact Person details
+              </div>
+              <div>
+                <label className="block mb-1">Name</label>
+                <input
+                  type="text"
+                  onChange={handleChange}
+                  name="contactName"
+                  value={formData.contactName}
+                  className="w-full border border-gray-300  rounded px-2 py-1"
+                />
+              </div>
+              <div>
+                <label className="block mb-1">Email</label>
+                <input
+                  type="email"
+                  onChange={handleChange}
+                  name="contactEmail"
+                  value={formData.contactEmail}
+                  className="w-full border border-gray-300  rounded px-2 py-1"
+                />
+              </div>
+              <div>
+                <label className="block mb-1">Number</label>
+                <input
+                  type="number"
+                  onChange={handleChange}
+                  name="contactNumber"
+                  value={formData.contactNumber}
+                  className="w-full border border-gray-300  rounded px-2 py-1"
+                />
+              </div>
 
-            {/* Job Info */}
-            <div>
-              <label className="block mb-1">Job Title</label>
-              <input
-                type="text"
-                onChange={handleChange}
-                name="jobTitle"
-                value={formData.jobTitle}
-                className="w-full border border-gray-300  rounded px-2 py-1"
-              />
-            </div>
-            <div>
-              <label className="block mb-1">Location</label>
-              <input
-                type="text"
-                onChange={handleChange}
-                name="location"
-                value={formData.location}
-                className="w-full border border-gray-300  rounded px-2 py-1"
-              />
-            </div>
-            <div>
-              <label className="block mb-1">Employment Type</label>
-              <select
-                className="w-full border border-gray-300  rounded px-2 py-1"
-                name="employmentType"
-                value={formData.employmentType}
-                onChange={handleChange}
-              >
-                <option>Full Time</option>
-                <option>Contract</option>
-                <option>Freelance</option>
-              </select>
-            </div>
-            <div>
-              <label className="block mb-1">Work Mode</label>
-              <select
-                className="w-full border border-gray-300  rounded px-2 py-1"
-                name="workMode"
-                value={formData.workMode}
-                onChange={handleChange}
-              >
-                <option>On site</option>
-                <option>Remote</option>
-                <option>Hybrid</option>
-              </select>
-            </div>
+              {/* Job Info */}
+              <div>
+                <label className="block mb-1">Job Title</label>
+                <input
+                  type="text"
+                  onChange={handleChange}
+                  name="jobTitle"
+                  value={formData.jobTitle}
+                  className="w-full border border-gray-300  rounded px-2 py-1"
+                />
+              </div>
+              <div>
+                <label className="block mb-1">Location</label>
+                <input
+                  type="text"
+                  onChange={handleChange}
+                  name="location"
+                  value={formData.location}
+                  className="w-full border border-gray-300  rounded px-2 py-1"
+                />
+              </div>
+              <div>
+                <label className="block mb-1">Employment Type</label>
+                <select
+                  className="w-full border border-gray-300  rounded px-2 py-1"
+                  name="employmentType"
+                  value={formData.employmentType}
+                  onChange={handleChange}
+                >
+                  <option>Full Time</option>
+                  <option>Contract</option>
+                  <option>Freelance</option>
+                </select>
+              </div>
+              <div>
+                <label className="block mb-1">Work Mode</label>
+                <select
+                  className="w-full border border-gray-300  rounded px-2 py-1"
+                  name="workMode"
+                  value={formData.workMode}
+                  onChange={handleChange}
+                >
+                  <option>On site</option>
+                  <option>Remote</option>
+                  <option>Hybrid</option>
+                </select>
+              </div>
 
-            {/* Salary */}
-            <div className="col-span-3 mt-4 font-medium">Salary range</div>
-            <div>
-              <label className="block mb-1">Minimum CTC</label>
-              <input
-                type="text"
-                onChange={handleChange}
-                name="minCTC"
-                value={formData.minCTC}
-                className="w-full border border-gray-300  rounded px-2 py-1"
-              />
-            </div>
-            <div>
-              <label className="block mb-1">Maximum CTC</label>
-              <input
-                type="text"
-                onChange={handleChange}
-                name="maxCTC"
-                value={formData.maxCTC}
-                className="w-full border border-gray-300  rounded px-2 py-1"
-              />
-            </div>
-            {/* Section Title */}
-            <div className="col-span-3 mt-4 font-medium"></div>
-            {/* Other */}
-            <div>
-              <label className="block mb-1">Notice period allowed</label>
-              <input
-                type="text"
-                onChange={handleChange}
-                name="noticePeriod"
-                value={formData.noticePeriod}
-                className="w-full border border-gray-300  rounded px-2 py-1"
-              />
-            </div>
-            <div>
-              <label className="block mb-1">Language Required</label>
-              <input
-                type="text"
-                onChange={handleChange}
-                name="language"
-                value={formData.language}
-                className="w-full border border-gray-300  rounded px-2 py-1"
-              />
-            </div>
-            <div>
-              <label className="block mb-1">Proficiency required</label>
-              <input
-                type="text"
-                onChange={handleChange}
-                name="proficiency"
-                value={formData.proficiency}
-                className="w-full border border-gray-300  rounded px-2 py-1"
-              />
-            </div>
+              {/* Salary */}
+              <div className="col-span-3 mt-4 font-medium">Salary range</div>
+              <div>
+                <label className="block mb-1">Minimum CTC</label>
+                <input
+                  type="text"
+                  onChange={handleChange}
+                  name="minCTC"
+                  value={formData.minCTC}
+                  className="w-full border border-gray-300  rounded px-2 py-1"
+                />
+              </div>
+              <div>
+                <label className="block mb-1">Maximum CTC</label>
+                <input
+                  type="text"
+                  onChange={handleChange}
+                  name="maxCTC"
+                  value={formData.maxCTC}
+                  className="w-full border border-gray-300  rounded px-2 py-1"
+                />
+              </div>
+              {/* Section Title */}
+              <div className="col-span-3 mt-4 font-medium"></div>
+              {/* Other */}
+              <div>
+                <label className="block mb-1">Notice period allowed</label>
+                <input
+                  type="text"
+                  onChange={handleChange}
+                  name="noticePeriod"
+                  value={formData.noticePeriod}
+                  className="w-full border border-gray-300  rounded px-2 py-1"
+                />
+              </div>
+              <div>
+                <label className="block mb-1">Language Required</label>
+                <input
+                  type="text"
+                  onChange={handleChange}
+                  name="language"
+                  value={formData.language}
+                  className="w-full border border-gray-300  rounded px-2 py-1"
+                />
+              </div>
+              <div>
+                <label className="block mb-1">Proficiency required</label>
+                <input
+                  type="text"
+                  onChange={handleChange}
+                  name="proficiency"
+                  value={formData.proficiency}
+                  className="w-full border border-gray-300  rounded px-2 py-1"
+                />
+              </div>
 
-            {/* Submit */}
-            <div className="col-span-3 mt-4">
-              {/* <button
+              {/* Submit */}
+              <div className="col-span-3 mt-4">
+                {/* <button
                 type="submit"
                 className="bg-[#46EB19] hover:bg-[#8bd178] text-white px-6 py-2 rounded"
               >
                 Submit
               </button> */}
-              <button
-                type="submit"
-                className={`" text-sm font-medium rounded-md text-white 
+                <button
+                  type="submit"
+                  className={`" text-sm font-medium rounded-md text-white 
                 ${
                   isLoading
                     ? "bg-[#46EB19] cursor-not-allowed w-40 py-2 px-4"
                     : "bg-[#46EB19] hover:bg-green-500 w-40 py-2 px-4"
                 }"`}
-                onClick={handleUpdate}
-              >
-                {isLoading ? (
-                  <div className="flex items-center justify-center">
-                    <svg
-                      className="animate-spin h-5 w-5 mr-2"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                  </div>
-                ) : showEditModal ? (
-                  "Update"
-                ) : (
-                  "Submit"
-                )}
-              </button>
-              {showEditModal && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setEditClient(null);
-                    setFormData({
-                      clientName: "",
-                      clientEmail: "",
-                      // ... reset other fields
-                    });
-                  }}
-                  className="ml-2 bg-gray-500 hover:bg-gray-600 text-white w-40 py-2 px-4 rounded-md text-sm font-medium"
+                  onClick={handleUpdate}
                 >
-                  Cancel
+                  {isLoading ? (
+                    <div className="flex items-center justify-center">
+                      <svg
+                        className="animate-spin h-5 w-5 mr-2"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                    </div>
+                  ) : showEditModal ? (
+                    "Update"
+                  ) : (
+                    "Submit"
+                  )}
                 </button>
-              )}
-            </div>
-          </form>
-        </div>
+                {showEditModal && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setEditClient(null);
+                      setFormData({
+                        clientName: "",
+                        clientEmail: "",
+                        // ... reset other fields
+                      });
+                    }}
+                    className="ml-2 bg-gray-500 hover:bg-gray-600 text-white w-40 py-2 px-4 rounded-md text-sm font-medium"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </form>
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-6 py-6">
+                <button
+                  onClick={handlePrevPage}
+                  disabled={page === 1}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors duration-300 ${
+                    page === 1
+                      ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                      : "bg-blue-500 text-white hover:bg-blue-600"
+                  }`}
+                >
+                  ← Prev
+                </button>
+
+                <span className="text-sm md:text-base font-semibold text-gray-700">
+                  Page <span className="text-blue-600">{page}</span> of{" "}
+                  <span className="text-blue-600">{totalPages}</span>
+                  <span className="ml-4 text-gray-600">
+                    Total: <strong>{totalClient}</strong> candidates
+                  </span>
+                </span>
+
+                <button
+                  onClick={handleNextPage}
+                  disabled={page === totalPages}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors duration-300 ${
+                    page === totalPages
+                      ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                      : "bg-blue-500 text-white hover:bg-blue-600"
+                  }`}
+                >
+                  Next →
+                </button>
+              </div>
+            )}
+          </div>
+        </>
       )}
     </div>
   );

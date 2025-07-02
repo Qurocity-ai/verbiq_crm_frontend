@@ -52,7 +52,7 @@ const AllRoutes = () => {
         }
       >
         <Route index element={<Candidatedata />} />
-        <Route path="candidateData" index element={<Candidatedata />} />
+        <Route path="candidateData" index element={<CandidateData />} />
         <Route path="Data-Assign" element={<DataAssign />} />
       </Route>
     </Routes>

@@ -82,6 +82,8 @@ const Candidatedata = () => {
   const [editId, setEditId] = useState(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
+  const [clientNames, setClientNames] = useState([]);
+  const [recruiterNames, setRecruiterNames] = useState([]);
 
   // Pagination states
   const [page, setPage] = useState(1);
@@ -96,6 +98,8 @@ const Candidatedata = () => {
     language: "",
     experience: "",
     noticePeriod: "",
+    candidateStage: "",
+    DOI: "",
   });
 
   // Checkbox select states
@@ -152,6 +156,26 @@ const Candidatedata = () => {
 
   useEffect(() => {
     fetchCandidates();
+    const token = getToken();
+    // Fetch client names
+    fetch("https://verbiq-crm.onrender.com/api/getClient", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => setClientNames(data.clients || []))
+      .catch(() => setClientNames([]));
+
+    // Fetch recruiter names
+    fetch("https://verbiq-crm.onrender.com/api/getallrecruiters", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => setRecruiterNames(data.recruiters || []))
+      .catch(() => setRecruiterNames([]));
     // eslint-disable-next-line
   }, [page]);
 
@@ -389,6 +413,8 @@ const Candidatedata = () => {
       language: "",
       experience: "",
       noticePeriod: "",
+      candidateStage: "",
+      DOI: "",
     });
     fetchCandidates();
   };
@@ -425,6 +451,14 @@ const Candidatedata = () => {
           case "noticePeriod":
             url = "https://verbiq-crm.onrender.com/api/filterByNoticePeriod";
             body = [{ noticePeriod: value }];
+            break;
+          case "candidateStage":
+            url = "https://verbiq-crm.onrender.com/api/filterByCandidateStage";
+            body = [{ candidateStage: value }];
+            break;
+          case "DOI":
+            url = "https://verbiq-crm.onrender.com/api/filterByDOI";
+            body = { DOI: value };
             break;
           default:
             continue;
@@ -765,6 +799,20 @@ const Candidatedata = () => {
               }
               className="border px-2 py-1 rounded"
             />
+            <input
+              type="text"
+              placeholder="Candidate Stage"
+              onChange={(e) =>
+                handleFilterInputChange("candidateStage", e.target.value)
+              }
+              className="border px-2 py-1 rounded"
+            />
+            <input
+              type="text"
+              placeholder="Date of interview"
+              onChange={(e) => handleFilterInputChange("DOI", e.target.value)}
+              className="border px-2 py-1 rounded"
+            />
             <button
               onClick={addFilters}
               className="p-3 rounded-full bg-blue-50 hover:bg-blue-100 transition"
@@ -778,16 +826,16 @@ const Candidatedata = () => {
               <ClearFilterIcon />
             </button>
           </div>
-          <div className="mt-6 border border-gray-300 rounded-md shadow-md bg-white w-full overflow-x-auto">
+          <div className="mt-6 border border-gray-300 rounded-md shadow-md bg-white w-full overflow-x-auto ">
             {isFetching ? (
               <div className="px-6 pb-6">Loading...</div>
             ) : (
-              <div className="px-0 pb-6">
+              <div className="pb-6">
                 {candidates.length === 0 ? (
                   <div className="text-center py-4">No candidates found.</div>
                 ) : (
                   <>
-                    <table className="w-full border-collapse table-auto">
+                    <table className="min-w-[1200px] border-collapse table-auto ">
                       <thead>
                         <tr className="bg-gray-100 border-b border-gray-200">
                           <th className="py-3 px-2 font-semibold text-left">
@@ -802,13 +850,27 @@ const Candidatedata = () => {
                             S.No.
                           </th>
                           <th className="py-3 px-2 font-semibold text-left">
-                            Name
+                            Client Name
                           </th>
+
                           <th className="py-3 px-2 font-semibold text-left">
-                            Email
+                            Job (process) Name
+                          </th>
+
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Candidate Name
                           </th>
                           <th className="py-3 px-2 font-semibold text-left">
                             Language
+                          </th>
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Proficiency
+                          </th>
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Contact number
+                          </th>
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Email Address
                           </th>
                           <th className="py-3 px-2 font-semibold text-left">
                             Location
@@ -824,6 +886,15 @@ const Candidatedata = () => {
                           </th>
                           <th className="py-3 px-2 font-semibold text-left">
                             Notice Period
+                          </th>
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Candidate Stage
+                          </th>
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Date of Interview
+                          </th>
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Recuriter
                           </th>
                           <th className="py-3 px-2 font-semibold text-left">
                             Actions
@@ -850,14 +921,64 @@ const Candidatedata = () => {
                             <td className="py-2 px-2">
                               {(page - 1) * PAGE_LIMIT + idx + 1}
                             </td>
+                            <td className="py-2 px-2">
+                              <select
+                                name="clientName"
+                                value={form.clientName}
+                                onChange={handleChange}
+                                className="border border-gray-300 px-2 py-1 rounded w-half"
+                                required
+                              >
+                                {clientNames.map((client, idx) => (
+                                  <option key={idx} value={client.clientName}>
+                                    {client.clientName}
+                                  </option>
+                                ))}
+                              </select>
+                            </td>
+                            <td>
+                              <select
+                                name="jobTitle"
+                                value={form.jobTitle}
+                                onChange={handleChange}
+                                className="border border-gray-300 px-2 py-1 rounded w-half"
+                                required
+                              >
+                                {clientNames.map((client, idx) => (
+                                  <option key={idx} value={client.jobTitle}>
+                                    {client.jobTitle}
+                                  </option>
+                                ))}
+                              </select>
+                            </td>
+
                             <td className="py-2 px-2">{c.candidateName}</td>
-                            <td className="py-2 px-2">{c.candidateEmail}</td>
                             <td className="py-2 px-2">{c.language}</td>
+                            <td className="py-2 px-2">{c.proficiency}</td>
+                            <td className="py-2 px-2">{c.contactNo}</td>
+                            <td className="py-2 px-2">{c.candidateEmail}</td>
                             <td className="py-2 px-2">{c.location}</td>
                             <td className="py-2 px-2">{c.currentCTC}</td>
                             <td className="py-2 px-2">{c.expectedCTC}</td>
                             <td className="py-2 px-2">{c.experience}</td>
                             <td className="py-2 px-2">{c.noticePeriod}</td>
+                            <td className="py-2 px-2">{c.candidateStage}</td>
+                            <td className="py-2 px-2">{c.DOI}</td>
+                            <td className="py-2 px-2">
+                              <select
+                                name="recruiter"
+                                value={form.recruiter}
+                                onChange={handleChange}
+                                className="border border-gray-300 px-2 py-1 rounded w-full"
+                                required
+                              >
+                                {recruiterNames.map((rec, idx) => (
+                                  <option key={idx} value={rec.fullname}>
+                                    {rec.fullname}
+                                  </option>
+                                ))}
+                              </select>
+                            </td>
                             <td className="py-2 px-2">
                               <div className="flex gap-2">
                                 <button
