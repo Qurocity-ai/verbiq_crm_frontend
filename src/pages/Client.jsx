@@ -267,129 +267,131 @@ function Client() {
                 <div className="mb-4 bg-white rounded-lg shadow-md mt-20 flex items-center overflow-x-scroll w-screen pr-72">
                   {/* Scrollable Content */}
                   <div className="flex-growt">
-                    <div className="flex p-4 min-w-max ">
-                      {" "}
-                      {/* min-w-max ensures content pushes div wider than parent */}
-                      <div className="flex-shrink-0 w-16 text-gray-600 font-medium">
-                        S.no
-                      </div>
-                      <div className="flex-shrink-0 w-48 text-gray-600 font-medium ">
-                        Client Name
-                      </div>
-                      <div className="flex-shrink-0 w-64 text-gray-600 font-medium">
-                        Email
-                      </div>
-                      <div className="flex-shrink-0 w-32 text-gray-600 font-medium">
-                        CPD Name
-                      </div>
-                      <div className="flex-shrink-0 w-64 text-gray-600 font-medium">
-                        CPD Email
-                      </div>
-                      <div className="flex-shrink-0 w-40 text-gray-600 font-medium">
-                        CPD Number
-                      </div>
-                      <div className="flex-shrink-0 w-40 text-gray-600 font-medium">
-                        Job Title
-                      </div>
-                      <div className="flex-shrink-0 w-32 text-gray-600 font-medium">
-                        Location
-                      </div>
-                      <div className="flex-shrink-0 w-40 text-gray-600 font-medium">
-                        Employment Type
-                      </div>
-                      <div className="flex-shrink-0 w-32 text-gray-600 font-medium">
-                        Work Mode
-                      </div>
-                      <div className="flex-shrink-0 w-32 text-gray-600 font-medium">
-                        Minimum CTC
-                      </div>
-                      <div className="flex-shrink-0 w-32 text-gray-600 font-medium">
-                        Maximum CTC
-                      </div>
-                      <div className="flex-shrink-0 w-48 text-gray-600 font-medium">
-                        Notice period allowed
-                      </div>
-                      <div className="flex-shrink-0 w-40 text-gray-600 font-medium">
-                        Language Required
-                      </div>
-                      <div className="flex-shrink-0 w-40 text-gray-600 font-medium">
-                        Proficiency required
-                      </div>
-                    </div>
-                    {Array.isArray(clients) && clients.length > 0 ? (
-                      clients.map((client, index) => (
-                        <div
-                          className="flex p-4 min-w-max border-t border-gray-200"
-                          key={index}
-                        >
-                          <>
-                            <div className="flex-shrink-0 w-16">
-                              {index + 1}
-                            </div>
-                            <div className="flex-shrink-0 w-48">
-                              {client.clientName}
-                            </div>
-                            <div className="flex-shrink-0 w-64 truncate">
-                              {client.clientEmail}
-                            </div>
-                            <div className="flex-shrink-0 w-32">
-                              {client.contactName}
-                            </div>
-                            <div className="flex-shrink-0 w-64 truncate">
-                              {client.contactEmail}
-                            </div>
-                            <div className="flex-shrink-0 w-40">
-                              {client.contactNumber}
-                            </div>
-                            <div className="flex-shrink-0 w-40">
-                              {client.jobTitle}
-                            </div>
-                            <div className="flex-shrink-0 w-32">
-                              {client.location}
-                            </div>
-                            <div className="flex-shrink-0 w-40">
-                              {client.employmentType}
-                            </div>
-                            <div className="flex-shrink-0 w-32">
-                              {client.workMode}
-                            </div>
-                            <div className="flex-shrink-0 w-32">
-                              {client.minCTC}
-                            </div>
-                            <div className="flex-shrink-0 w-32">
-                              {client.maxCTC}
-                            </div>
-                            <div className="flex-shrink-0 w-48">
-                              {client.noticePeriod}
-                            </div>
-                            <div className="flex-shrink-0 w-40">
-                              {client.language}
-                            </div>
-                            <div className="flex-shrink-0 w-40">
-                              {client.proficiency}
-                            </div>
-                            <div className="  border-l  border-gray-200 bg-white">
-                              <button
-                                onClick={() => handleEditClick(client)}
-                                className="p-4 rounded-full bg-blue-50 hover:bg-blue-100 transition"
-                                title="Edit Candidate"
-                              >
-                                <EditIcon />
-                              </button>
-                              <button
-                                onClick={() => handleDelete(client._id)}
-                                className="p-4 rounded-full bg-red-50 hover:bg-red-100 transition ml-2"
-                                title="Delete Client"
-                              >
-                                <DeleteIcon />
-                              </button>
-                            </div>
-                          </>
-                        </div>
-                      ))
-                    ) : (
-                      <div>No clients found</div>
-                    )}
+                    <table className="min-w-[1300px] border-collapse table-auto ">
+                      <thead>
+                        <tr className="bg-gray-100 border-b border-gray-200 min-w-[1300px]">
+                          <th className="py-3 px-2 font-semibold text-left">
+                            S.No.
+                          </th>
+
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Client Name
+                          </th>
+
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Email
+                          </th>
+
+                          <th className="py-3 px-2 font-semibold text-left">
+                            CPD Name
+                          </th>
+                          <th className="py-3 px-2 font-semibold text-left">
+                            CPD Email
+                          </th>
+                          <th className="py-3 px-2 font-semibold text-left">
+                            CPD Number
+                          </th>
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Job Title
+                          </th>
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Location
+                          </th>
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Employment Type
+                          </th>
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Work Mode
+                          </th>
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Minimum CTC
+                          </th>
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Maximum CTC
+                          </th>
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Notice period allowed
+                          </th>
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Language Required
+                          </th>
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Proficiency required
+                          </th>
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Edit
+                          </th>
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Delete
+                          </th>
+                        </tr>
+                      </thead>
+                      {Array.isArray(clients) && clients.length > 0 ? (
+                        clients.map((client, index) => (
+                          <tbody>
+                            <tr
+                              key={index}
+                              className={
+                                "border border-gray-200 hover:bg-gray-50 transition-all"
+                              }
+                            >
+                              <td className="py-2 px-2">
+                                {(page - 1) * PAGE_LIMIT + index + 1}
+                              </td>
+                              <td className="py-2 px-2">{client.clientName}</td>
+                              <td>{client.clientEmail}</td>
+
+                              <td className="py-2 px-2">
+                                {client.contactName}
+                              </td>
+                              <td className="py-2 px-2">
+                                {client.clientEmail}
+                              </td>
+
+                              <td className="py-2 px-2">
+                                {client.contactNumber}
+                              </td>
+                              <td className="py-2 px-2">{client.jobTitle}</td>
+                              <td className="py-2 px-2">{client.location}</td>
+                              <td className="py-2 px-2">
+                                {client.employmentType}
+                              </td>
+                              <td className="py-2 px-2">{client.workMode}</td>
+                              <td className="py-2 px-2">{client.minCTC}</td>
+                              <td className="py-2 px-2">{client.maxCTC}</td>
+                              <td className="py-2 px-2">
+                                {client.noticePeriod}
+                              </td>
+                              <td className="py-2 px-2">{client.language}</td>
+                              <td className="py-2 px-2">
+                                {client.proficiency}
+                              </td>
+                              <td>
+                                <button
+                                  onClick={() => handleEditClick(client)}
+                                  className="p-4 rounded-full bg-blue-50 hover:bg-blue-100 transition"
+                                  title="Edit Candidate"
+                                >
+                                  <EditIcon />
+                                </button>
+                              </td>
+                              <td>
+                                <button
+                                  onClick={() => handleDelete(client._id)}
+                                  className="p-4 rounded-full bg-red-50 hover:bg-red-100 transition ml-2"
+                                  title="Delete Client"
+                                >
+                                  <DeleteIcon />
+                                </button>
+                              </td>
+                            </tr>
+                          </tbody>
+                        ))
+                      ) : (
+                        <div>No clients found</div>
+                      )}
+                    </table>
+
                     {totalPages > 1 && (
                       <div className="flex justify-center items-center gap-6 py-6">
                         <button

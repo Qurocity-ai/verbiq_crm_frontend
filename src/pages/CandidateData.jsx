@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import * as XLSX from "xlsx";
-import axios from "axios";
+import { useSelector, useDispatch } from "react-redux";
+import { addCandidate, removeCandidate } from "../Slices/CandidateSlice.js";
 
 // SVG icons for Edit (Delete removed)
 const EditIcon = () => (
@@ -75,6 +76,8 @@ const initialFormState = {
 const PAGE_LIMIT = 5; // number of candidates per page
 
 const Candidatedata = () => {
+  const dispatch = useDispatch();
+  const selectedCandidates = useSelector((state) => state.Candidates);
   const [showForm, setShowForm] = useState(false);
   const [candidates, setCandidates] = useState([]);
   const [form, setForm] = useState(initialFormState);
@@ -103,8 +106,6 @@ const Candidatedata = () => {
   });
 
   // Checkbox select states
-  const [selected, setSelected] = useState([]);
-  const [selectAll, setSelectAll] = useState(false);
 
   // Fetch all candidates with Authorization (paginated)
   const fetchCandidates = async () => {
@@ -369,30 +370,40 @@ const Candidatedata = () => {
 
   // Checkbox select logic
   const handleSelectAll = (e) => {
-    const checked = e.target.checked;
-    setSelectAll(checked);
-    if (checked) {
-      setSelected(candidates.map((c) => c._id));
+    if (e.target.checked) {
+      // Add all candidates to Redux
+      candidates.forEach((c) => {
+        if (!selectedCandidates.some((sc) => sc._id === c._id)) {
+          dispatch(addCandidate(c));
+        }
+      });
     } else {
-      setSelected([]);
+      // Remove all candidates from Redux
+      candidates.forEach((c) => {
+        if (selectedCandidates.some((sc) => sc._id === c._id)) {
+          dispatch(removeCandidate(c));
+        }
+      });
     }
   };
 
-  const handleSelect = (candidateId) => {
-    setSelected((prev) =>
-      prev.includes(candidateId)
-        ? prev.filter((id) => id !== candidateId)
-        : [...prev, candidateId]
+  const handleSelect = (candidate) => {
+    const isSelected = selectedCandidates.some(
+      (sc) => sc._id === candidate._id
     );
-  };
-
-  useEffect(() => {
-    if (candidates.length > 0 && selected.length === candidates.length) {
-      setSelectAll(true);
+    if (isSelected) {
+      dispatch(removeCandidate(candidate));
     } else {
-      setSelectAll(false);
+      dispatch(addCandidate(candidate));
     }
-  }, [selected, candidates]);
+  };
+  // useEffect(() => {
+  //   if (candidates.length > 0 && selected.length === candidates.length) {
+  //     setSelectAll(true);
+  //   } else {
+  //     setSelectAll(false);
+  //   }
+  // }, [selected, candidates]);
 
   // Pagination controls
   const handlePrevPage = () => {
@@ -841,8 +852,17 @@ const Candidatedata = () => {
                           <th className="py-3 px-2 font-semibold text-left">
                             <input
                               type="checkbox"
-                              checked={selectAll}
-                              onChange={handleSelectAll}
+                              checked={
+                                candidates.length > 0 &&
+                                candidates.every((c) =>
+                                  selectedCandidates.some(
+                                    (sc) => sc._id === c._id
+                                  )
+                                )
+                              }
+                              onChange={(e) => {
+                                handleSelectAll(e);
+                              }}
                               aria-label="Select All"
                             />
                           </th>
@@ -907,14 +927,18 @@ const Candidatedata = () => {
                             key={c._id}
                             className={
                               "border border-gray-200 hover:bg-gray-50 transition-all" +
-                              (selected.includes(c._id) ? " bg-green-50" : "")
+                              (selectedCandidates.some((sc) => sc._id === c._id)
+                                ? " bg-green-50"
+                                : "")
                             }
                           >
                             <td className="py-2 px-2 text-center">
                               <input
                                 type="checkbox"
-                                checked={selected.includes(c._id)}
-                                onChange={() => handleSelect(c._id)}
+                                checked={selectedCandidates.some(
+                                  (sc) => sc._id === c._id
+                                )}
+                                onChange={() => handleSelect(c)}
                                 aria-label={`Select row ${idx + 1}`}
                               />
                             </td>

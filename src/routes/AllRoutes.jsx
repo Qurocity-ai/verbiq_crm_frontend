@@ -59,7 +59,3 @@ const AllRoutes = () => {
 };
 
 export default AllRoutes;
-
-// supriyaexit@gmail.com
-
-// dfghhjjhjj
