@@ -390,6 +390,41 @@ function Client() {
                     ) : (
                       <div>No clients found</div>
                     )}
+                    {totalPages > 1 && (
+                      <div className="flex justify-center items-center gap-6 py-6">
+                        <button
+                          onClick={handlePrevPage}
+                          disabled={page === 1}
+                          className={`px-4 py-2 rounded-lg font-medium transition-colors duration-300 ${
+                            page === 1
+                              ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                              : "bg-blue-500 text-white hover:bg-blue-600"
+                          }`}
+                        >
+                          ← Prev
+                        </button>
+
+                        <span className="text-sm md:text-base font-semibold text-gray-700">
+                          Page <span className="text-blue-600">{page}</span> of{" "}
+                          <span className="text-blue-600">{totalPages}</span>
+                          <span className="ml-4 text-gray-600">
+                            Total: <strong>{totalClient}</strong> candidates
+                          </span>
+                        </span>
+
+                        <button
+                          onClick={handleNextPage}
+                          disabled={page === totalPages}
+                          className={`px-4 py-2 rounded-lg font-medium transition-colors duration-300 ${
+                            page === totalPages
+                              ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                              : "bg-blue-500 text-white hover:bg-blue-600"
+                          }`}
+                        >
+                          Next →
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Fixed Action Buttons */}
@@ -866,41 +901,6 @@ function Client() {
                 )}
               </div>
             </form>
-            {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-6 py-6">
-                <button
-                  onClick={handlePrevPage}
-                  disabled={page === 1}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors duration-300 ${
-                    page === 1
-                      ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                      : "bg-blue-500 text-white hover:bg-blue-600"
-                  }`}
-                >
-                  ← Prev
-                </button>
-
-                <span className="text-sm md:text-base font-semibold text-gray-700">
-                  Page <span className="text-blue-600">{page}</span> of{" "}
-                  <span className="text-blue-600">{totalPages}</span>
-                  <span className="ml-4 text-gray-600">
-                    Total: <strong>{totalClient}</strong> candidates
-                  </span>
-                </span>
-
-                <button
-                  onClick={handleNextPage}
-                  disabled={page === totalPages}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors duration-300 ${
-                    page === totalPages
-                      ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                      : "bg-blue-500 text-white hover:bg-blue-600"
-                  }`}
-                >
-                  Next →
-                </button>
-              </div>
-            )}
           </div>
         </>
       )}

@@ -9,7 +9,6 @@ import CandidateData from "../pages/CandidateData";
 import Login from "../componants/Login/Login";
 import RecruiterDashboard from "../componants/RecruiterDashboard/RecruiterDashboard";
 import DataAssign from "../recruiterpages/DataAssign";
-import Candidatedata from "../recruiterpages/Candidatedata";
 
 const SuperAdminRoute = ({ children }) => {
   const token = localStorage.getItem("crm_token");
@@ -51,7 +50,7 @@ const AllRoutes = () => {
           </RecruiterRoute>
         }
       >
-        <Route index element={<Candidatedata />} />
+        <Route index element={<CandidateData />} />
         <Route path="candidateData" index element={<CandidateData />} />
         <Route path="Data-Assign" element={<DataAssign />} />
       </Route>
@@ -60,3 +59,7 @@ const AllRoutes = () => {
 };
 
 export default AllRoutes;
+
+// supriyaexit@gmail.com
+
+// dfghhjjhjj
