@@ -1,6 +1,25 @@
 import React from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { removeCandidate } from "../Slices/CandidateSlice.js";
+
+const DeleteIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+    className="text-red-600"
+  >
+    <path d="M3 6h18" />
+    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+  </svg>
+);
 function DataAssign() {
+  const dispatch = useDispatch();
   const selectedCandidates = useSelector((state) => state.Candidates);
   return (
     <div>
@@ -37,7 +56,7 @@ function DataAssign() {
               Date of Interview
             </th>
             <th className="py-3 px-2 font-semibold text-left">Recuriter</th>
-            {/* <th className="py-3 px-2 font-semibold text-left">Actions</th> */}
+            <th className="py-3 px-2 font-semibold text-left">Remove</th>
           </tr>
         </thead>
         {selectedCandidates.map((c, index) => (
@@ -68,6 +87,17 @@ function DataAssign() {
               <td className="py-2 px-2">{c.candidateStage}</td>
               <td className="py-2 px-2">{c.DOI}</td>
               <td className="py-2 px-2">{c.recruiter}</td>
+              <td>
+                <button
+                  onClick={() => {
+                    dispatch(removeCandidate(c));
+                  }}
+                  className="p-4 rounded-full bg-red-50 hover:bg-red-100 transition ml-2"
+                  title="Delete Client"
+                >
+                  <DeleteIcon />
+                </button>
+              </td>
             </tr>
           </tbody>
         ))}
