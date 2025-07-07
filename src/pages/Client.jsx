@@ -7,9 +7,40 @@ function Client() {
   const [showForm, setShowForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isClient, isClientShow] = useState(false);
   const [clients, setClients] = useState([]);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editClient, setEditClient] = useState(null);
+
+  const [clientForm, setClientForm] = useState([
+    {
+      _id: 1,
+      clientName: "",
+      clientEmail: "",
+      contactNumber: "",
+      Role: "",
+    },
+  ]);
+
+  const handleAddClient = () => {
+    setClientForm([
+      ...clientForm,
+      {
+        _id: clientForm.length + 1,
+        clientName: "",
+        clientEmail: "",
+        contactNumber: "",
+        Role: "",
+      },
+    ]);
+  };
+
+  const handleRemoveClient = (idToRemove) => {
+    if (clientForm.length > 1) {
+      // Only remove if there's more than one language
+      setClientForm(clientForm.filter((c) => c._id !== idToRemove));
+    }
+  };
 
   const EditIcon = () => (
     <svg
@@ -41,20 +72,21 @@ function Client() {
   );
 
   const [formData, setFormData] = useState({
+    companyName: "",
     clientName: "",
     clientEmail: "",
-    contactName: "",
-    contactEmail: "",
     contactNumber: "",
-    jobTitle: "",
-    location: "",
-    employmentType: [],
-    workMode: [],
-    minCTC: "",
-    maxCTC: "",
-    noticePeriod: "",
-    language: "",
-    proficiency: "",
+    Role: "",
+    // contactName: "",
+    // contactEmail: "",
+    // location: "",
+    // employmentType: [],
+    // workMode: [],
+    // minCTC: "",
+    // maxCTC: "",
+    // noticePeriod: "",
+    // language: "",
+    // proficiency: "",
   });
 
   const [page, setPage] = useState(1);
@@ -82,61 +114,109 @@ function Client() {
       }));
     }
   };
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setIsLoading(true);
+  //   const token = localStorage.getItem("crm_token");
+  //   try {
+  //     if (editMode) {
+  //       // Update existing record
+  //       await axios.put(
+  //         `https://verbiq-crm.onrender.com/api/updateClient/${editingId}`,
+  //         formData,
+  //         {
+  //           headers: {
+  //             Authorization: `Bearer ${token}`,
+  //           },
+  //         }
+  //       );
+  //     } else {
+  //       // Create new record
+  //       await axios.post(
+  //         "https://verbiq-crm.onrender.com/api/createClient",
+  //         formData,
+  //         {
+  //           headers: {
+  //             Authorization: `Bearer ${token}`,
+  //           },
+  //         }
+  //       );
+  //     }
+
+  //     // Reset form and edit mode
+  //     setFormData({
+  //       companyName:"",
+  //       clientName: "",
+  //       clientEmail: "",
+  //       // contactName: "",
+  //       // contactEmail: "",
+  //       contactNumber: "",
+  //       Role: "",
+  //       // location: "",
+  //       // employmentType: [],
+  //       // workMode: [],
+  //       // minCTC: "",
+  //       // maxCTC: "",
+  //       // noticePeriod: "",
+  //       // language: "",
+  //       // proficiency: "",
+  //     });
+  //     setEditMode(false);
+  //     setEditingId(null);
+  //   } catch (error) {
+  //     console.error("Error:", error);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  // ...existing code...
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     const token = localStorage.getItem("crm_token");
     try {
-      if (editMode) {
-        // Update existing record
-        await axios.put(
-          `https://verbiq-crm.onrender.com/api/updateClient/${editingId}`,
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-      } else {
-        // Create new record
-        await axios.post(
-          "https://verbiq-crm.onrender.com/api/createClient",
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-      }
-
-      // Reset form and edit mode
+      // Make sure to send all required fields
+      const response = await axios.post(
+        "https://verbiq-crm.onrender.com/api/createClient",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      // Reset form after successful creation
       setFormData({
+        companyName: "",
         clientName: "",
         clientEmail: "",
-        contactName: "",
-        contactEmail: "",
         contactNumber: "",
-        jobTitle: "",
-        location: "",
-        employmentType: [],
-        workMode: [],
-        minCTC: "",
-        maxCTC: "",
-        noticePeriod: "",
-        language: "",
-        proficiency: "",
+        Role: "",
       });
-      setEditMode(false);
-      setEditingId(null);
+      if (
+        !formData.companyName ||
+        !formData.clientName ||
+        !formData.clientEmail ||
+        !formData.contactNumber ||
+        !formData.Role
+      ) {
+        setError("All fields are required.");
+        setIsLoading(false);
+        return;
+      }
+      // Optionally, refresh client list
+      fetchData();
+      console.log(response.data);
     } catch (error) {
-      console.error("Error:", error);
+      console.log(formData);
+      console.error("Error creating client:", error);
+      setError(error.message);
     } finally {
       setIsLoading(false);
     }
   };
-
+  // ...existing code...
   const fetchData = async () => {
     try {
       const token = localStorage.getItem("crm_token");
@@ -191,26 +271,26 @@ function Client() {
     }
   };
 
-  const handleEditClick = (clients) => {
-    setFormData({
-      clientName: clients.clientName,
-      clientEmail: clients.clientEmail,
-      contactName: clients.contactNumber,
-      contactEmail: clients.contactEmail,
-      contactNumber: clients.contactNumber,
-      jobTitle: clients.jobTitle,
-      location: clients.location,
-      employmentType: clients.employmentType || [],
-      workMode: clients.workMode || [],
-      minCTC: clients.minCTC,
-      maxCTC: clients.maxCTC,
-      noticePeriod: clients.noticePeriod,
-      language: clients.language,
-      proficiency: clients.proficiency,
-    });
-    setEditClient(clients._id);
-    setShowEditModal(true);
-  };
+  // const handleEditClick = (clients) => {
+  //   setFormData({
+  //     clientName: clients.clientName,
+  //     clientEmail: clients.clientEmail,
+  //     contactName: clients.contactNumber,
+  //     contactEmail: clients.contactEmail,
+  //     contactNumber: clients.contactNumber,
+  //     jobTitle: clients.jobTitle,
+  //     location: clients.location,
+  //     employmentType: clients.employmentType || [],
+  //     workMode: clients.workMode || [],
+  //     minCTC: clients.minCTC,
+  //     maxCTC: clients.maxCTC,
+  //     noticePeriod: clients.noticePeriod,
+  //     language: clients.language,
+  //     proficiency: clients.proficiency,
+  //   });
+  //   setEditClient(clients._id);
+  //   setShowEditModal(true);
+  // };
 
   const handleUpdate = async () => {
     const token = localStorage.getItem("crm_token");
@@ -244,7 +324,7 @@ function Client() {
       className={`sm:fixed flex flex-col items-start min-h-screen p-6 bg-white `}
     >
       {/* Left-aligned small box */}
-      {!showForm && (
+      {!isClient && (
         <>
           <div className={`${showEditModal ? " hidden" : "blur-none"}`}>
             <div
@@ -254,7 +334,7 @@ function Client() {
                 Add Client and Job Information
               </h2>
               <button
-                onClick={() => setShowForm(true)}
+                onClick={() => isClientShow(true)}
                 className="bg-green-400 hover:bg-green-500 text-black font-medium py-2 px-6 rounded block mx-auto"
               >
                 Create
@@ -275,20 +355,23 @@ function Client() {
                           </th>
 
                           <th className="py-3 px-2 font-semibold text-left">
+                            Company Name
+                          </th>
+                          <th className="py-3 px-2 font-semibold text-left">
                             Client Name
+                          </th>
+
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Number
                           </th>
 
                           <th className="py-3 px-2 font-semibold text-left">
                             Email
                           </th>
-
                           <th className="py-3 px-2 font-semibold text-left">
-                            CPD Name
+                            Role
                           </th>
-                          <th className="py-3 px-2 font-semibold text-left">
-                            CPD Email
-                          </th>
-                          <th className="py-3 px-2 font-semibold text-left">
+                          {/* <th className="py-3 px-2 font-semibold text-left">
                             CPD Number
                           </th>
                           <th className="py-3 px-2 font-semibold text-left">
@@ -320,9 +403,9 @@ function Client() {
                           </th>
                           <th className="py-3 px-2 font-semibold text-left">
                             Edit
-                          </th>
+                          </th> */}
                           <th className="py-3 px-2 font-semibold text-left">
-                            Delete
+                            View
                           </th>
                         </tr>
                       </thead>
@@ -338,20 +421,22 @@ function Client() {
                               <td className="py-2 px-2">
                                 {(page - 1) * PAGE_LIMIT + index + 1}
                               </td>
+                              <td className="py-2 px-2">
+                                {client.companyName}
+                              </td>
+                              <td>{client.clientEmail}</td>
                               <td className="py-2 px-2">{client.clientName}</td>
                               <td>{client.clientEmail}</td>
 
                               <td className="py-2 px-2">
-                                {client.contactName}
-                              </td>
-                              <td className="py-2 px-2">
-                                {client.clientEmail}
-                              </td>
-
-                              <td className="py-2 px-2">
                                 {client.contactNumber}
                               </td>
-                              <td className="py-2 px-2">{client.jobTitle}</td>
+                              <td className="py-2 px-2">{client.Role}</td>
+
+                              {/* <td className="py-2 px-2">
+                                {client.contactNumber}
+                              </td> */}
+                              {/* <td className="py-2 px-2">{client.jobTitle}</td>
                               <td className="py-2 px-2">{client.location}</td>
                               <td className="py-2 px-2">
                                 {client.employmentType}
@@ -365,8 +450,8 @@ function Client() {
                               <td className="py-2 px-2">{client.language}</td>
                               <td className="py-2 px-2">
                                 {client.proficiency}
-                              </td>
-                              <td>
+                              </td> */}
+                              {/* <td>
                                 <button
                                   onClick={() => handleEditClick(client)}
                                   className="p-4 rounded-full bg-blue-50 hover:bg-blue-100 transition"
@@ -374,7 +459,7 @@ function Client() {
                                 >
                                   <EditIcon />
                                 </button>
-                              </td>
+                              </td> */}
                               <td>
                                 <button
                                   onClick={() => handleDelete(client._id)}
@@ -902,6 +987,170 @@ function Client() {
                   </button>
                 )}
               </div>
+            </form>
+          </div>
+        </>
+      )}
+
+      {isClient && (
+        <>
+          <div className="border w-max px-24 py-3">
+            <form onSubmit={handleSubmit}>
+              <label className="block mb-1">Company Name</label>
+              <input
+                type="text"
+                onChange={handleChange}
+                name="companyName"
+                value={formData.companyName}
+                className="w-1/2 border border-gray-300  rounded px-2 py-1"
+              />
+              {clientForm.map((c) => (
+                <div
+                  key={c._id}
+                  className="grid grid-cols-1 md:grid-cols-7 gap-4 py-5"
+                >
+                  <div>
+                    <label className="block mb-1">Client Name</label>
+                    <input
+                      id={`clientName-${c._id}`}
+                      name="clientName"
+                      type="text"
+                      // required
+                      className={`"w-full border border-gray-300  rounded px-2 py-4"`}
+                      value={formData.clientName}
+                      // onChange={(e) => {
+                      //   const updatedLanguages = clientForm.map((d) => {
+                      //     if (d._id === c._id) {
+                      //       return { ...d, clientName: e.target.value };
+                      //     }
+                      //     return d;
+                      //   });
+                      //   setClientForm(updatedLanguages);
+                      // }}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1">Email</label>
+                    <input
+                      id={`clientEmail-${c._id}`}
+                      name="clientEmail"
+                      type="email"
+                      // required
+                      className={`"w-full border border-gray-300  rounded px-2 py-4"`}
+                      value={formData.clientEmail}
+                      // onChange={(e) => {
+                      //   const updatedLanguages = clientForm.map((d) => {
+                      //     if (d._id === c._id) {
+                      //       return { ...d, clientEmail: e.target.value };
+                      //     }
+                      //     return d;
+                      //   });
+                      //   setClientForm(updatedLanguages);
+                      // }}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1">Number</label>
+                    <input
+                      id={`number-${c._id}`}
+                      name="contactNumber"
+                      type="text"
+                      // required
+                      className={`"w-full border border-gray-300 rounded px-2 py-4"`}
+                      value={formData.contactNumber}
+                      // onChange={(e) => {
+                      //   const updatedLanguages = clientForm.map((d) => {
+                      //     if (d._id === c._id) {
+                      //       return { ...d, contactNumber: e.target.value };
+                      //     }
+                      //     return d;
+                      //   });
+                      //   setClientForm(updatedLanguages);
+                      // }}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1">Role</label>
+                    <input
+                      id={`Role-${c._id}`}
+                      name="Role"
+                      type="text"
+                      // required
+                      className={`"w-full border border-gray-300  rounded px-2 py-4"`}
+                      value={formData.Role}
+                      // onChange={(e) => {
+                      //   const updatedLanguages = clientForm.map((d) => {
+                      //     if (d._id === c._id) {
+                      //       return { ...d, Role: e.target.value };
+                      //     }
+                      //     return d;
+                      //   });
+                      //   setClientForm(updatedLanguages);
+                      // }}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleAddClient}
+                        className="ml-6 p-2 text-white rounded-md bg-blue-700"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-6 w-6"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 4v16m8-8H4"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleRemoveClient(c._id);
+                        }}
+                        className="ml-2 p-2 text-white rounded-md bg-[#B0181B]"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-6 w-6"
+                        >
+                          <line
+                            x1="5"
+                            y1="12"
+                            x2="20"
+                            y2="12"
+                            stroke="white"
+                            strokeWidth="3"
+                          />
+                        </svg>
+                      </button>
+                    </>
+                  </div>
+                </div>
+              ))}
+              <button
+                type="submit"
+                className={`" text-sm font-medium rounded-md text-white 
+                ${
+                  isLoading
+                    ? "bg-[#46EB19] cursor-not-allowed w-40 py-2 px-4"
+                    : "bg-[#46EB19] hover:bg-green-500 w-40 py-2 px-4"
+                }"`}
+              >
+                Submit
+              </button>
             </form>
           </div>
         </>
