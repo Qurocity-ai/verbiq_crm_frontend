@@ -407,6 +407,9 @@ function Client() {
                           <th className="py-3 px-2 font-semibold text-left">
                             View
                           </th>
+                          <th className="py-3 px-2 font-semibold text-left">
+                            Delete
+                          </th>
                         </tr>
                       </thead>
                       {Array.isArray(clients) && clients.length > 0 ? (
@@ -424,13 +427,12 @@ function Client() {
                               <td className="py-2 px-2">
                                 {client.companyName}
                               </td>
-                              <td>{client.clientEmail}</td>
-                              <td className="py-2 px-2">{client.clientName}</td>
-                              <td>{client.clientEmail}</td>
+                              <td>{client.clientName}</td>
 
                               <td className="py-2 px-2">
                                 {client.contactNumber}
                               </td>
+                              <td>{client.clientEmail}</td>
                               <td className="py-2 px-2">{client.Role}</td>
 
                               {/* <td className="py-2 px-2">
@@ -462,8 +464,16 @@ function Client() {
                               </td> */}
                               <td>
                                 <button
+                                  className="p-4 rounded-full bg-green-50 hover:bg-green-100 transition ml-2"
+                                  title="Delete Client"
+                                >
+                                  View
+                                </button>
+                              </td>
+                              <td>
+                                <button
                                   onClick={() => handleDelete(client._id)}
-                                  className="p-4 rounded-full bg-red-50 hover:bg-red-100 transition ml-2"
+                                  className="p-4 rounded-full bg-red-50 hover:bg-red-50 transition ml-2"
                                   title="Delete Client"
                                 >
                                   <DeleteIcon />
@@ -1018,15 +1028,6 @@ function Client() {
                       // required
                       className={`"w-full border border-gray-300  rounded px-2 py-4"`}
                       value={formData.clientName}
-                      // onChange={(e) => {
-                      //   const updatedLanguages = clientForm.map((d) => {
-                      //     if (d._id === c._id) {
-                      //       return { ...d, clientName: e.target.value };
-                      //     }
-                      //     return d;
-                      //   });
-                      //   setClientForm(updatedLanguages);
-                      // }}
                       onChange={handleChange}
                     />
                   </div>
@@ -1039,15 +1040,6 @@ function Client() {
                       // required
                       className={`"w-full border border-gray-300  rounded px-2 py-4"`}
                       value={formData.clientEmail}
-                      // onChange={(e) => {
-                      //   const updatedLanguages = clientForm.map((d) => {
-                      //     if (d._id === c._id) {
-                      //       return { ...d, clientEmail: e.target.value };
-                      //     }
-                      //     return d;
-                      //   });
-                      //   setClientForm(updatedLanguages);
-                      // }}
                       onChange={handleChange}
                     />
                   </div>
@@ -1060,15 +1052,6 @@ function Client() {
                       // required
                       className={`"w-full border border-gray-300 rounded px-2 py-4"`}
                       value={formData.contactNumber}
-                      // onChange={(e) => {
-                      //   const updatedLanguages = clientForm.map((d) => {
-                      //     if (d._id === c._id) {
-                      //       return { ...d, contactNumber: e.target.value };
-                      //     }
-                      //     return d;
-                      //   });
-                      //   setClientForm(updatedLanguages);
-                      // }}
                       onChange={handleChange}
                     />
                   </div>
@@ -1081,15 +1064,6 @@ function Client() {
                       // required
                       className={`"w-full border border-gray-300  rounded px-2 py-4"`}
                       value={formData.Role}
-                      // onChange={(e) => {
-                      //   const updatedLanguages = clientForm.map((d) => {
-                      //     if (d._id === c._id) {
-                      //       return { ...d, Role: e.target.value };
-                      //     }
-                      //     return d;
-                      //   });
-                      //   setClientForm(updatedLanguages);
-                      // }}
                       onChange={handleChange}
                     />
                   </div>
@@ -1136,21 +1110,16 @@ function Client() {
                           />
                         </svg>
                       </button>
+                      <button
+                        type="submit"
+                        className="ml-2 p-2 text-white rounded-md bg-green-600"
+                      >
+                        Submit
+                      </button>
                     </>
                   </div>
                 </div>
               ))}
-              <button
-                type="submit"
-                className={`" text-sm font-medium rounded-md text-white 
-                ${
-                  isLoading
-                    ? "bg-[#46EB19] cursor-not-allowed w-40 py-2 px-4"
-                    : "bg-[#46EB19] hover:bg-green-500 w-40 py-2 px-4"
-                }"`}
-              >
-                Submit
-              </button>
             </form>
           </div>
         </>
