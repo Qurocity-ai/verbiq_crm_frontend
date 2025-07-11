@@ -12,7 +12,12 @@ function Client() {
   const [clients, setClients] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [groupedClient, setGroupedClient] = useState([]);
   const [editClient, setEditClient] = useState(null);
+  const [filters, setFilters] = useState({
+    clientName: "",
+  });
+
   const [formData, setFormData] = useState({
     clientName: "", // Assuming this will be a string ID from a selection or input
     headCount: "",
@@ -260,6 +265,17 @@ function Client() {
       setTotalClient(
         data.totalClient || (data.clients ? data.clients.length : 0)
       );
+      const grouped = response.data.clients.reduce((acc, client) => {
+        const name = client.companyName;
+        if (!acc[name]) {
+          acc[name] = [];
+        }
+        acc[name].push(client);
+        return acc;
+      }, {});
+      console.log("Grouped data", grouped);
+
+      setGroupedClient(grouped);
       setIsLoading(false);
     } catch (error) {
       console.error("Error details:", error.response);
@@ -292,6 +308,49 @@ function Client() {
     } catch (error) {
       console.error("Error details:", error.response);
       setError(error.message);
+      setIsLoading(false);
+    }
+  };
+
+  const handleFilterInputChange = (field, value) => {
+    setFilters((prev) => ({ ...prev, [field]: value }));
+  };
+  const addFilters = async () => {
+    setIsLoading(true);
+    const value = filters.clientName;
+    if (!value) {
+      alert("Please enter a client name.");
+      setIsLoading(false);
+      return;
+    }
+
+    const body = { clientName: [value] };
+
+    try {
+      const token = localStorage.getItem("crm_token");
+      const res = await fetch(
+        "https://verbiq-crm.onrender.com/api/filterJobByClientName",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(body),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Something went wrong");
+      }
+
+      const result = Array.isArray(data) ? data : data.jobs || data.data || [];
+      setJobs(result);
+    } catch (err) {
+      alert("Failed to fetch filtered jobs: " + err.message);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -423,59 +482,51 @@ function Client() {
                           </th>
 
                           <th className="py-3 px-2 font-semibold text-left">
-                            View
+                            Delete
                           </th>
                           <th className="py-3 px-2 font-semibold text-left">
-                            Delete
+                            View
                           </th>
                         </tr>
                       </thead>
-                      {Array.isArray(clients) && clients.length > 0 ? (
-                        clients.map((client, index) => (
-                          <tbody>
-                            <tr
-                              key={index}
-                              className={
-                                "border border-gray-200 hover:bg-gray-50 transition-all"
-                              }
-                            >
-                              <td className="py-2 px-2">
-                                {(page - 1) * PAGE_LIMIT + index + 1}
+                      {Object.entries(groupedClient).map(
+                        ([company, clients]) => (
+                          <tbody key={company}>
+                            <tr className="bg-gray-100">
+                              <td></td>
+                              <td colSpan={6} className="py-2 font-bold">
+                                {company}
                               </td>
-                              <td className="py-2 px-2">
-                                {client.companyName}
-                              </td>
-                              <td>{client.clientName}</td>
-
-                              <td className="py-2 px-2">
-                                {client.contactNumber}
-                              </td>
-                              <td>{client.clientEmail}</td>
-                              <td className="py-2 px-2">{client.Role}</td>
-
                               <td>
                                 <button
-                                  onClick={handleView}
-                                  className="p-4 rounded-full bg-green-50 hover:bg-green-100 transition ml-2"
-                                  title="Delete Client"
+                                  className="bg-green-500 px-4 py-2 rounded-full"
+                                  onClick={() => handleView(clients)}
                                 >
                                   View
                                 </button>
                               </td>
-                              <td>
-                                <button
-                                  onClick={() => handleDelete(client._id)}
-                                  className="p-4 rounded-full bg-red-50 hover:bg-red-50 transition ml-2"
-                                  title="Delete Client"
-                                >
-                                  <DeleteIcon />
-                                </button>
-                              </td>
                             </tr>
+                            {clients.slice(0, 1).map((client, idx) => (
+                              <tr key={idx} className="border hover:bg-gray-50">
+                                <td className="px-2 py-1">
+                                  {(page - 1) * PAGE_LIMIT + idx + 1}
+                                </td>
+                                <td>{client.companyName}</td>
+                                <td>{client.clientName}</td>
+                                <td>{client.contactNumber}</td>
+                                <td>{client.clientEmail}</td>
+                                <td>{client.Role}</td>
+                                <td>
+                                  <button
+                                    onClick={() => handleDelete(client._id)}
+                                  >
+                                    <DeleteIcon />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
                           </tbody>
-                        ))
-                      ) : (
-                        <div>No clients found</div>
+                        )
                       )}
                     </table>
 
@@ -1198,6 +1249,9 @@ function Client() {
                             <th className="py-3 px-2 font-semibold text-left">
                               Role
                             </th>
+                            <th className="py-3 px-2 font-semibold text-left">
+                              Filter Jobs
+                            </th>
                           </tr>
                         </thead>
                         {Array.isArray(clients) && clients.length > 0 ? (
@@ -1215,13 +1269,33 @@ function Client() {
                                 <td className="py-2 px-2">
                                   {client.companyName}
                                 </td>
-                                <td>{client.clientName}</td>
+                                <td>
+                                  <input
+                                    type="text"
+                                    onChange={(e) =>
+                                      handleFilterInputChange(
+                                        "clientName",
+                                        e.target.value
+                                      )
+                                    }
+                                    value={client.clientName}
+                                    className="border-none"
+                                  />
+                                </td>
 
                                 <td className="py-2 px-2">
                                   {client.contactNumber}
                                 </td>
                                 <td>{client.clientEmail}</td>
                                 <td className="py-2 px-2">{client.Role}</td>
+                                <td>
+                                  <button
+                                    onClick={addFilters}
+                                    className="bg-green-400 hover:bg-green-500 text-black font-medium py-2 px-6 rounded block mx-auto"
+                                  >
+                                    Jobs
+                                  </button>
+                                </td>
                               </tr>
                             </tbody>
                           ))
@@ -1378,7 +1452,7 @@ function Client() {
                             of{" "}
                             <span className="text-blue-600">{totalPages}</span>
                             <span className="ml-4 text-gray-600">
-                              Total: <strong>{totalJob}</strong> candidates
+                              Total: <strong>{totalJob}</strong> Jobs
                             </span>
                           </span>
 
