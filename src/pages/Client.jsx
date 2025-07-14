@@ -12,8 +12,13 @@ function Client() {
   const [clients, setClients] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [openedCompany, setOpenedCompany] = useState(null);
+  const [clientsByCompany, setClientsByCompany] = useState({});
+  const [openedJob, setOpenedJob] = useState(null);
+  const [jobByClient, setJobByClient] = useState({});
   const [groupedClient, setGroupedClient] = useState([]);
   const [editClient, setEditClient] = useState(null);
+  const [companyName, setCompanyName] = useState("");
   const [filters, setFilters] = useState({
     clientName: "",
   });
@@ -96,21 +101,11 @@ function Client() {
       alert("An error occurred while submitting the form.");
     }
   };
-  const [clientForm, setClientForm] = useState([
-    {
-      _id: 1,
-      clientName: "",
-      clientEmail: "",
-      contactNumber: "",
-      Role: "",
-    },
-  ]);
 
   const handleAddClient = () => {
-    setClientForm([
-      ...clientForm,
+    setclientData([
+      ...clientData,
       {
-        _id: clientForm.length + 1,
         clientName: "",
         clientEmail: "",
         contactNumber: "",
@@ -118,15 +113,77 @@ function Client() {
       },
     ]);
   };
-
-  const handleView = () => {
-    setShowJobs(true);
+  const handleRemoveClient = (idx) => {
+    if (clientData.length > 1) {
+      // Only remove if there's more than one language
+      setclientData(clientData.filter((_, i) => i !== idx));
+    }
   };
 
-  const handleRemoveClient = (idToRemove) => {
-    if (clientForm.length > 1) {
-      // Only remove if there's more than one language
-      setClientForm(clientForm.filter((c) => c._id !== idToRemove));
+  const handleCompanyChange = (e) => setCompanyName(e.target.value);
+
+  async function fetchClientsByCompany(companyName) {
+    const resp = await fetch(
+      "https://verbiq-crm.onrender.com/api/filterClientByCompanyName",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ company: [companyName] }),
+      }
+    );
+    if (!resp.ok) throw new Error(await resp.text());
+    const data = await resp.json();
+    console.log("filterClientByCompanyName", data);
+    setClients(data.data);
+    setShowJobs(true);
+    return data.data; // array of clients
+  }
+
+  const handleView = async (companyName) => {
+    if (clientsByCompany[companyName]) {
+      // Toggle close if already loaded
+      setOpenedCompany(openedCompany === companyName ? null : companyName);
+      return;
+    }
+    try {
+      const clients = await fetchClientsByCompany(companyName);
+      setClientsByCompany((prev) => ({ ...prev, [companyName]: clients }));
+      setOpenedCompany(companyName);
+    } catch (err) {
+      console.error(err);
+      alert("Error loading clients: " + err.message);
+    }
+  };
+  async function fetchJobByClientName(clientName) {
+    const resp = await fetch(
+      "https://verbiq-crm.onrender.com/api/filterJobByClientName",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ client: [clientName] }),
+      }
+    );
+    if (!resp.ok) throw new Error(await resp.text());
+    const data = await resp.json();
+    console.log("filterJobByClientName", data);
+    setJobs(data.data);
+    setShowJobs(true);
+    return data.data; // array of clients
+  }
+
+  const handleJobView = async (clientName) => {
+    if (jobByClient[clientName]) {
+      // Toggle close if already loaded
+      setOpenedCompany(openedJob === clientName ? null : clientName);
+      return;
+    }
+    try {
+      const clients = await fetchJobByClientName(clientName);
+      setJobByClient((prev) => ({ ...prev, [clientName]: clients }));
+      setOpenedJob(clientName);
+    } catch (err) {
+      console.error(err);
+      alert("Error loading clients: " + err.message);
     }
   };
 
@@ -161,7 +218,6 @@ function Client() {
 
   const [clientData, setclientData] = useState([
     {
-      companyName: "",
       clientName: "",
       clientEmail: "",
       contactNumber: "",
@@ -174,60 +230,57 @@ function Client() {
   const [totalClient, setTotalClient] = useState(0);
   const [totalJob, setTotalJob] = useState(0);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name === "employmentType" || name === "workMode") {
-      const array = value.split(",").map((item) => item.trim());
-      setclientData((prev) => ({
-        ...prev,
-        [name]: array,
-      }));
-    } else if (name === "minCTC" || name === "maxCTC") {
-      // Handle number inputs
-      setclientData((prev) => ({
-        ...prev,
-        [name]: Number(value),
-      }));
-    } else {
-      setclientData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
+  const handleChange = (idx, field, value) => {
+    setclientData((forms) =>
+      forms.map((f, i) => (i === idx ? { ...f, [field]: value } : f))
+    );
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     const token = localStorage.getItem("crm_token");
+    // Inject companyName into each client
+    const payload = clients.map((c) => ({ ...c, companyName }));
+    // Validate
+    if (!companyName) return alert("Company is required");
+    if (
+      clients.some(
+        (c) => !c.clientName || !c.clientEmail || !c.contactNumber || !c.Role
+      )
+    )
+      return alert("All client fields are required");
     try {
       // Make sure to send all required fields
       const response = await axios.post(
         "https://verbiq-crm.onrender.com/api/createClient",
-        clientData,
+        payload,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
+
       // Reset form after successful creation
       setclientData({
-        companyName: "",
         clientName: "",
         clientEmail: "",
         contactNumber: "",
         Role: "",
       });
+
       if (
-        !clientData.companyName ||
-        !clientData.clientName ||
-        !clientData.clientEmail ||
-        !clientData.contactNumber ||
-        !clientData.Role
+        clientData.some(
+          (f) =>
+            !f.clientName ||
+            !f.clientEmail ||
+            !f.contactNumber ||
+            !f.Role ||
+            !f.companyName
+        )
       ) {
-        setError("All fields are required.");
-        setIsLoading(false);
+        alert("All fields are required");
         return;
       }
       // Optionally, refresh client list
@@ -315,45 +368,7 @@ function Client() {
   const handleFilterInputChange = (field, value) => {
     setFilters((prev) => ({ ...prev, [field]: value }));
   };
-  const addFilters = async () => {
-    setIsLoading(true);
-    const value = filters.clientName;
-    if (!value) {
-      alert("Please enter a client name.");
-      setIsLoading(false);
-      return;
-    }
 
-    const body = { clientName: [value] };
-
-    try {
-      const token = localStorage.getItem("crm_token");
-      const res = await fetch(
-        "https://verbiq-crm.onrender.com/api/filterJobByClientName",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(body),
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Something went wrong");
-      }
-
-      const result = Array.isArray(data) ? data : data.jobs || data.data || [];
-      setJobs(result);
-    } catch (err) {
-      alert("Failed to fetch filtered jobs: " + err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
   useEffect(() => {
     fetchData();
     fetchJobData();
@@ -379,27 +394,6 @@ function Client() {
       console.error("Error deleting client:", error);
     }
   };
-
-  // const handleEditClick = (clients) => {
-  //   setFormData({
-  //     clientName: clients.clientName,
-  //     clientEmail: clients.clientEmail,
-  //     contactName: clients.contactNumber,
-  //     contactEmail: clients.contactEmail,
-  //     contactNumber: clients.contactNumber,
-  //     jobTitle: clients.jobTitle,
-  //     location: clients.location,
-  //     employmentType: clients.employmentType || [],
-  //     workMode: clients.workMode || [],
-  //     minCTC: clients.minCTC,
-  //     maxCTC: clients.maxCTC,
-  //     noticePeriod: clients.noticePeriod,
-  //     language: clients.language,
-  //     proficiency: clients.proficiency,
-  //   });
-  //   setEditClient(clients._id);
-  //   setShowEditModal(true);
-  // };
 
   const handleUpdate = async () => {
     const token = localStorage.getItem("crm_token");
@@ -500,7 +494,7 @@ function Client() {
                               <td>
                                 <button
                                   className="bg-green-500 px-4 py-2 rounded-full"
-                                  onClick={() => handleView(clients)}
+                                  onClick={() => handleView(company)}
                                 >
                                   View
                                 </button>
@@ -1086,62 +1080,71 @@ function Client() {
               <label className="block mb-1">Company Name</label>
               <input
                 type="text"
-                onChange={handleChange}
                 name="companyName"
-                value={clientData.companyName}
+                value={companyName}
                 className="w-1/2 border border-gray-300  rounded px-2 py-1"
+                onChange={handleCompanyChange}
               />
-              {clientForm.map((c) => (
+
+              {clientData.map((c, idx) => (
                 <div
-                  key={c._id}
+                  key={idx}
                   className="grid grid-cols-1 md:grid-cols-7 gap-4 py-5"
                 >
                   <div>
                     <label className="block mb-1">Client Name</label>
                     <input
-                      id={`clientName-${c._id}`}
+                      id={`clientName-${idx}`}
                       name="clientName"
                       type="text"
                       // required
                       className={`"w-full border border-gray-300  rounded px-2 py-4"`}
-                      value={clientData.clientName}
-                      onChange={handleChange}
+                      value={c.clientName}
+                      onChange={(e) =>
+                        handleChange(idx, "clientName", e.target.value)
+                      }
                     />
                   </div>
                   <div>
                     <label className="block mb-1">Email</label>
                     <input
-                      id={`clientEmail-${c._id}`}
+                      id={`clientEmail-${idx}`}
                       name="clientEmail"
                       type="email"
                       // required
                       className={`"w-full border border-gray-300  rounded px-2 py-4"`}
-                      value={clientData.clientEmail}
-                      onChange={handleChange}
+                      value={c.clientEmail}
+                      onChange={(e) =>
+                        handleChange(idx, "clientEmail", e.target.value)
+                      }
                     />
                   </div>
                   <div>
                     <label className="block mb-1">Number</label>
                     <input
-                      id={`number-${c._id}`}
+                      id={`number-${idx}`}
                       name="contactNumber"
                       type="text"
                       // required
                       className={`"w-full border border-gray-300 rounded px-2 py-4"`}
-                      value={clientData.contactNumber}
-                      onChange={handleChange}
+                      value={c.contactNumber}
+                      onChange={(e) =>
+                        handleChange(idx, "contactNumber", e.target.value)
+                      }
                     />
                   </div>
                   <div>
                     <label className="block mb-1">Role</label>
                     <input
-                      id={`Role-${c._id}`}
+                      id={`Role-${idx}`}
                       name="Role"
                       type="text"
                       // required
                       className={`"w-full border border-gray-300  rounded px-2 py-4"`}
-                      value={clientData.Role}
-                      onChange={handleChange}
+                      value={c.Role}
+                      onChange={(e) =>
+                        handleChange(idx, "Role", e.target.value)
+                      }
                     />
                   </div>
                   <div className="flex items-center">
@@ -1169,7 +1172,7 @@ function Client() {
                       <button
                         type="button"
                         onClick={() => {
-                          handleRemoveClient(c._id);
+                          handleRemoveClient(idx);
                         }}
                         className="ml-2 p-2 text-white rounded-md bg-[#B0181B]"
                       >
@@ -1187,16 +1190,17 @@ function Client() {
                           />
                         </svg>
                       </button>
-                      <button
-                        type="submit"
-                        className="ml-2 p-2 text-white rounded-md bg-green-600"
-                      >
-                        Submit
-                      </button>
                     </>
                   </div>
                 </div>
               ))}
+
+              <button
+                type="submit"
+                className="ml-2 p-2 text-white rounded-md bg-green-600"
+              >
+                Submit
+              </button>
             </form>
           </div>
         </>
@@ -1290,7 +1294,9 @@ function Client() {
                                 <td className="py-2 px-2">{client.Role}</td>
                                 <td>
                                   <button
-                                    onClick={addFilters}
+                                    onClick={() =>
+                                      handleJobView(client.clientName)
+                                    }
                                     className="bg-green-400 hover:bg-green-500 text-black font-medium py-2 px-6 rounded block mx-auto"
                                   >
                                     Jobs
