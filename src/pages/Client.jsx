@@ -227,6 +227,8 @@ function Client() {
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [jobPage, setJobPage] = useState(1);
+  const [totalJobPages, setTotalJobPages] = useState(1);
   const [totalClient, setTotalClient] = useState(0);
   const [totalJob, setTotalJob] = useState(0);
 
@@ -341,7 +343,7 @@ function Client() {
       const token = localStorage.getItem("crm_token");
 
       const response = await axios.get(
-        `https://verbiq-crm.onrender.com/api/getJob?page=${page}&limit=${PAGE_LIMIT}`,
+        `https://verbiq-crm.onrender.com/api/getJob?page=${jobPage}&limit=${PAGE_LIMIT}`,
 
         {
           headers: {
@@ -355,7 +357,7 @@ function Client() {
       console.log("Jobs Data:", response.data);
       console.log(jobs);
       const data = await response.data;
-      setTotalPages(data.totalPages || 1);
+      setTotalJobPages(data.totalPages || 1);
       setTotalJob(data.totalJob || (data.jobs ? data.jobs.length : 0));
       setIsLoading(false);
     } catch (error) {
@@ -371,10 +373,13 @@ function Client() {
 
   useEffect(() => {
     fetchData();
-    fetchJobData();
-    console.log(jobs);
+
     console.log(clients);
   }, [page]);
+  useEffect(() => {
+    fetchJobData();
+    console.log(jobs);
+  }, [jobPage]);
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -417,6 +422,12 @@ function Client() {
   const handleNextPage = () => {
     if (page < totalPages) setPage(page + 1);
   };
+  const handlePrevJobPage = () => {
+    if (jobPage > 1) setJobPage(jobPage - 1);
+  };
+  const handleNextJobPage = () => {
+    if (jobPage < totalJobPages) setJobPage(jobPage + 1);
+  };
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this client?")) {
       await deleteClient(id);
@@ -450,7 +461,7 @@ function Client() {
                 <div className="mb-4 bg-white rounded-lg shadow-md mt-20 flex items-center overflow-x-scroll w-screen pr-72">
                   {/* Scrollable Content */}
                   <div className="flex-growt">
-                    <table className="min-w-[1300px] border-collapse table-auto ">
+                    <table className="min-w-[2000px] border-collapse table-auto ">
                       <thead>
                         <tr className="bg-gray-100 border-b border-gray-200 min-w-[1300px]">
                           <th className="py-3 px-2 font-semibold text-left">
@@ -488,12 +499,12 @@ function Client() {
                           <tbody key={company}>
                             <tr className="bg-gray-100">
                               <td></td>
-                              <td colSpan={6} className="py-2 font-bold">
+                              <td colSpan={6} className="py-6 font-bold">
                                 {company}
                               </td>
                               <td>
                                 <button
-                                  className="bg-green-500 px-4 py-2 rounded-full"
+                                  className="bg-green-500 px-4 py-2 rounded-lg"
                                   onClick={() => handleView(company)}
                                 >
                                   View
@@ -1229,7 +1240,7 @@ function Client() {
                   <div className="mb-2 bg-white rounded-lg shadow-md mt-3 flex items-center overflow-x-scroll w-screen pr-72">
                     {/* Scrollable Content */}
                     <div className="flex-growt">
-                      <table className="min-w-[1300px] border-collapse table-auto ">
+                      <table className="min-w-[2000px] border-collapse table-auto ">
                         <thead>
                           <tr className="bg-gray-100 border-b border-gray-200 min-w-[1300px]">
                             <th className="py-3 px-2 font-semibold text-left">
@@ -1267,10 +1278,10 @@ function Client() {
                                   "border border-gray-200 hover:bg-gray-50 transition-all"
                                 }
                               >
-                                <td className="py-2 px-2">
+                                <td className="py-5 px-2">
                                   {(page - 1) * PAGE_LIMIT + index + 1}
                                 </td>
-                                <td className="py-2 px-2">
+                                <td className="py-5 px-2">
                                   {client.companyName}
                                 </td>
                                 <td>
@@ -1287,11 +1298,11 @@ function Client() {
                                   />
                                 </td>
 
-                                <td className="py-2 px-2">
+                                <td className="py-5 px-2">
                                   {client.contactNumber}
                                 </td>
                                 <td>{client.clientEmail}</td>
-                                <td className="py-2 px-2">{client.Role}</td>
+                                <td className="py-5 px-2">{client.Role}</td>
                                 <td>
                                   <button
                                     onClick={() =>
@@ -1353,41 +1364,72 @@ function Client() {
                   <div className="mb-4 bg-white rounded-lg shadow-md mt-2 flex items-center overflow-x-scroll w-screen pr-72">
                     {/* Scrollable Content */}
                     <div className="flex-growt">
-                      <table className="min-w-[1300px] border-collapse table-auto">
+                      <table className="min-w-screen border-collapse table-auto">
                         <thead>
-                          <tr className="bg-yellow-300 border-b border-yellow-200 min-w-[1300px]">
-                            <th className="py-3 px-2 font-semibold text-left border-r-2 border-gray-400">
+                          <tr className="bg-gray-300 border-b border-yellow-200 min-w-[1300px]">
+                            <th className="py-1 px-2 font-semibold text-left border-r-2 border-gray-400">
                               S.No.
                             </th>
 
-                            <th className="py-3 px-2 font-semibold text-left border-r-2 border-gray-400">
+                            <th className="py-1 px-2 font-semibold text-left border-r-2 border-gray-400">
                               Client Name
                             </th>
 
-                            <th className="py-3 px-2 font-semibold text-left border-gray-400 border-r-2">
+                            <th className="py-1 px-2 font-semibold text-left border-gray-400 border-r-2">
                               Headcount
                             </th>
 
-                            <th className="py-3 px-2 font-semibold text-left border-gray-400 border-r-2">
+                            <th className="py-1 px-2 font-semibold text-left border-gray-400 border-r-2">
                               Process Name
                             </th>
-                            <th className="py-3 px-2 font-semibold text-left border-gray-400 border-r-2">
+                            <th className="py-1 px-2 font-semibold text-left border-gray-400 border-r-2">
                               PoC Name
                             </th>
-                            <th className="py-3 px-2 font-semibold text-left border-gray-400 border-r-2">
+                            <th className="py-1 px-2 font-semibold text-left border-gray-400 border-r-2">
                               PoC Contact Number
                             </th>
-                            <th className="py-3 px-2 font-semibold text-left border-gray-400 border-r-2">
+                            <th className="py-1 px-2 font-semibold text-left border-gray-400 border-r-2">
                               Vendor Payout
                             </th>
-                            <th className="py-3 px-2 font-semibold text-left border-gray-400 border-r-2">
+                            <th className="py-1 px-2 font-semibold text-left border-gray-400 border-r-2">
                               Employee Engagement Type
                             </th>
-                            <th className="py-3 px-2 font-semibold text-left border-gray-400 border-r-2">
+                            <th className="py-1 px-2 font-semibold text-left border-gray-400 border-r-2">
                               Role Type
                             </th>
-                            <th className="py-3 px-2 font-semibold text-left border-gray-400 border-r-2">
+                            <th className="py-1 px-2 font-semibold text-left border-gray-400 border-r-2">
                               Location of Hire
+                            </th>
+                            <th className="py-1 px-2 font-semibold text-left border-gray-400 border-r-2">
+                              Language
+                            </th>
+                            <th className="py-1 px-2 font-semibold text-left border-gray-400 border-r-2">
+                              Profeciency
+                            </th>
+                            <th className="py-1 px-2 font-semibold text-left border-gray-400 border-r-2">
+                              CTC offered
+                            </th>
+                            <th className="py-1 px-2 font-semibold text-left border-gray-400 border-r-2">
+                              Experience
+                            </th>
+                            <th className="py-1 px-2 font-semibold text-left border-gray-400 border-r-2">
+                              Interview Type
+                            </th>
+                            <th className="py-1 px-2 font-semibold text-left border-gray-400 border-r-2">
+                              Notice Period Buyout
+                            </th>
+                            <th className="py-1 px-2 font-semibold text-left border-gray-400 border-r-2">
+                              Relocation Allownce
+                            </th>
+                            <th className="py-1 px-2 font-semibold text-left border-gray-400 border-r-2">
+                              Interview Process
+                            </th>
+
+                            <th className="py-1 px-2 font-semibold text-left border-gray-400 border-r-2">
+                              RFQ status
+                            </th>
+                            <th className="py-1 px-2 font-semibold text-left border-gray-400 border-r-2">
+                              Extra Notes
                             </th>
                           </tr>
                         </thead>
@@ -1400,36 +1442,66 @@ function Client() {
                                   "border border-gray-200 hover:bg-gray-50 transition-all"
                                 }
                               >
-                                <td className="py-2 px-10 border-b-2 border-r-2 border-gray-400">
+                                <td className="py-1 px-10 border-b-2 border-r-2 border-gray-400">
                                   {(page - 1) * PAGE_LIMIT + index + 1}
                                 </td>
-                                <td className="py-2 px-10 border-r-2 border-b-2 border-gray-400">
+                                <td className="py-1 px-10 border-r-2 border-b-2 border-gray-400">
                                   {job.clientName}
                                 </td>
-                                <td className="py-2 px-10 border-r-2 border-b-2 border-gray-400">
+                                <td className="py-1 px-10 border-r-2 border-b-2 border-gray-400">
                                   {job.headCount}
                                 </td>
 
-                                <td className="py-2 px-10 border-r-2 border-b-2 border-gray-400">
+                                <td className="py-1 px-10 border-r-2 border-b-2 border-gray-400">
                                   {job.processName}
                                 </td>
-                                <td className="py-2 px-10 border-r-2 border-b-2 border-gray-400">
+                                <td className="py-1 px-10 border-r-2 border-b-2 border-gray-400">
                                   {job.POCname}
                                 </td>
-                                <td className="py-2 px-10 border-r-2 border-b-2 border-gray-400">
+                                <td className="py-1 px-10 border-r-2 border-b-2 border-gray-400">
                                   {job.POCcontactNumber}
                                 </td>
-                                <td className="py-2 px-10 border-r-2 border-b-2 border-gray-400">
+                                <td className="py-1 px-10 border-r-2 border-b-2 border-gray-400">
                                   {job.vendorPayout}
                                 </td>
-                                <td className="py-2 px-10 border-r-2 border-b-2 border-gray-400">
+                                <td className="py-1 px-10 border-r-2 border-b-2 border-gray-400">
                                   {job.empEngType}
                                 </td>
-                                <td className="py-2 px-10 border-r-2 border-b-2 border-gray-400">
+                                <td className="py-1 px-10 border-r-2 border-b-2 border-gray-400">
                                   {job.role}
                                 </td>
-                                <td className="py-2 px-10 border-r-2 border-b-2 border-gray-400">
+                                <td className="py-1 px-10 border-r-2 border-b-2 border-gray-400">
                                   {job.location}
+                                </td>
+                                <td className="py-1 px-10 border-r-2 border-b-2 border-gray-400">
+                                  {job.language}
+                                </td>
+                                <td className="py-1 px-10 border-r-2 border-b-2 border-gray-400">
+                                  {job.profencency}
+                                </td>
+                                <td className="py-1 px-10 border-r-2 border-b-2 border-gray-400">
+                                  {job.CTCoffer}
+                                </td>
+                                <td className="py-1 px-10 border-r-2 border-b-2 border-gray-400">
+                                  {job.experience}
+                                </td>
+                                <td className="py-1 px-10 border-r-2 border-b-2 border-gray-400">
+                                  {job.interviewType}
+                                </td>
+                                <td className="py-1 px-10 border-r-2 border-b-2 border-gray-400">
+                                  {job.noticePeriod}
+                                </td>
+                                <td className="py-1 px-10 border-r-2 border-b-2 border-gray-400">
+                                  {job.relocationAllow}
+                                </td>
+                                <td className="py-1 px-10 border-r-2 border-b-2 border-gray-400">
+                                  {job.interviewProcess}
+                                </td>
+                                <td className="py-1 px-10 border-r-2 border-b-2 border-gray-400">
+                                  {job.RFQstatus}
+                                </td>
+                                <td className="py-1 px-10 border-r-2 border-b-2 border-gray-400">
+                                  {job.extraNotes}
                                 </td>
                               </tr>
                             </tbody>
@@ -1442,10 +1514,10 @@ function Client() {
                       {totalPages > 1 && (
                         <div className="flex justify-center items-center gap-6 py-6">
                           <button
-                            onClick={handlePrevPage}
-                            disabled={page === 1}
+                            onClick={handlePrevJobPage}
+                            disabled={jobPage === 1}
                             className={`px-4 py-2 rounded-lg font-medium transition-colors duration-300 ${
-                              page === 1
+                              jobPage === 1
                                 ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                                 : "bg-blue-500 text-white hover:bg-blue-600"
                             }`}
@@ -1454,19 +1526,21 @@ function Client() {
                           </button>
 
                           <span className="text-sm md:text-base font-semibold text-gray-700">
-                            Page <span className="text-blue-600">{page}</span>{" "}
-                            of{" "}
-                            <span className="text-blue-600">{totalPages}</span>
+                            Page{" "}
+                            <span className="text-blue-600">{jobPage}</span> of{" "}
+                            <span className="text-blue-600">
+                              {totalJobPages}
+                            </span>
                             <span className="ml-4 text-gray-600">
                               Total: <strong>{totalJob}</strong> Jobs
                             </span>
                           </span>
 
                           <button
-                            onClick={handleNextPage}
-                            disabled={page === totalPages}
+                            onClick={handleNextJobPage}
+                            disabled={jobPage === totalJobPages}
                             className={`px-4 py-2 rounded-lg font-medium transition-colors duration-300 ${
-                              page === totalPages
+                              jobPage === totalJobPages
                                 ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                                 : "bg-blue-500 text-white hover:bg-blue-600"
                             }`}
